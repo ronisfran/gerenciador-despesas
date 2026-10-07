@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Finanzzas v4.0 - Gerenciador Financeiro</title>
+
+  <!-- Conexão PWA Manifest & Ícones -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-512.png">
+
+  <!-- Meta Tags PWA -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Finanzzas">
+  <meta name="theme-color" content="#0f172a">
+  
+  <!-- Chart.js para Gráficos -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Leaflet CSS & JS para Mapas -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+  <!-- Firebase SDKs (v10.8.0 Modulares) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAzoznLplw8jI6_4Kg_S7aFf4669vRtWlI",
+      authDomain: "gerenciador-despesas-3f619.firebaseapp.com",
+      databaseURL: "https://gerenciador-despesas-3f619-default-rtdb.firebaseio.com",
+      projectId: "gerenciador-despesas-3f619",
+      storageBucket: "gerenciador-despesas-3f619.firebasestorage.app",
+      messagingSenderId: "815268328722",
+      appId: "1:815268328722:web:e66b6af622f7332c036fcb",
+      measurementId: "G-PPXG8Z7ZM8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    window.firebaseAuth = auth;
+    window.firebaseDb = db;
+    window.googleProvider = provider;
+    window.signInWithPopup = signInWithPopup;
+    window.signOut = signOut;
+    window.onAuthStateChanged = onAuthStateChanged;
+    window.doc = doc;
+    window.setDoc = setDoc;
+    window.onSnapshot = onSnapshot;
+  </script>
+
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --primary: #00ffea;
+      --primary-hover: #00d7c6;
+      --primary-text: #0f172a;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --input-bg: #0f172a;
+      --sidebar-bg: #1e293b;
+      --modal-bg: #1e293b;
+      --radius: 14px;
+    }
+
+    [data-theme="light"] {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --primary: #00c4b4;
+      --primary-hover: #00a396;
+      --primary-text: #ffffff;
+      --input-bg: #f1f5f9;
+      --sidebar-bg: #ffffff;
+      --modal-bg: #ffffff;
+    }
+
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 12px 12px 90px 12px;
+      display: flex;
+      justify-content: center;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Tela de Forced Login (Lock Screen) */
+    .login-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 80vh;
+      text-align: center;
+      gap: 20px;
+      padding: 20px;
+    }
+
+    .login-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 32px 24px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .login-logo {
+      width: 72px;
+      height: 72px;
+      border-radius: 18px;
+      box-shadow: 0 0 20px rgba(0, 255, 234, 0.3);
+    }
+
+    .hidden { display: none !important; }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+    }
+
+    .menu-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 1.2rem;
+      padding: 8px 14px;
+      border-radius: var(--radius);
+      cursor: pointer;
+    }
+
+    header h1 { 
+      font-size: 1.4rem; 
+      font-weight: 800; 
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #00ffea, #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .theme-toggle {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    /* Bottom Dock */
+    .bottom-dock-overlay {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 85px;
+      background: linear-gradient(to top, var(--bg) 65%, transparent);
+      pointer-events: none;
+      z-index: 900;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      padding-bottom: 16px;
+    }
+
+    .bottom-dock {
+      pointer-events: auto;
+      background: rgba(30, 41, 59, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 6px 12px;
+      display: flex;
+      gap: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .dock-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .dock-btn.active {
+      background: var(--primary);
+      color: var(--primary-text);
+      box-shadow: 0 0 12px rgba(0, 255, 234, 0.4);
+    }
+
+    .tab-view {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      animation: fadeIn 0.25s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+      background: var(--card-bg);
+      padding: 18px;
+      border-radius: var(--radius);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      border: 1px solid var(--border);
+    }
+
+    .card h3 { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .card p { font-size: 1.3rem; font-weight: 800; }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+
+    .kpi-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 14px;
+      border-radius: var(--radius);
+    }
+
+    .feedback-box {
+      background: rgba(0, 255, 234, 0.05);
+      border: 1px solid rgba(0, 255, 234, 0.2);
+      border-radius: var(--radius);
+      padding: 14px;
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .feedback-item {
+      font-size: 0.88rem;
+      line-height: 1.4;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .badge {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-block;
+    }
+    .badge-paid { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-pending { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-recurring { background: rgba(0, 255, 234, 0.15); color: var(--primary); border: 1px solid rgba(0, 255, 234, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; margin-left: 4px; }
+
+    .text-success { color: var(--success); }
+    .text-danger { color: var(--danger); }
+    .text-primary { color: var(--primary); }
+
+    .btn {
+      cursor: pointer;
+      font-weight: 700;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.98); }
+
+    .btn-primary { 
+      background: var(--primary); 
+      color: var(--primary-text); 
+      width: 100%; 
+      margin-top: 10px; 
+      padding: 12px; 
+      border-radius: var(--radius);
+    }
+
+    .btn-secondary { background: #059669; color: white; border-radius: var(--radius); }
+    .btn-info { background: #3b82f6; color: white; border-radius: var(--radius); }
+    .btn-danger { background: var(--danger); color: white; border-radius: var(--radius); }
+
+    .close-circle-btn {
+      background: #ef4444;
+      border: none;
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      font-size: 0.85rem;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(6px);
+      z-index: 1000;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--modal-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 0 20px 20px 20px;
+      width: 100%;
+      max-width: 560px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header-sticky {
+      position: sticky;
+      top: 0;
+      background: var(--modal-bg);
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 0 12px 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .sidebar-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(6px);
+      z-index: 998;
+      display: none;
+    }
+    .sidebar {
+      position: fixed;
+      top: 0; left: -320px;
+      width: 300px;
+      height: 100%;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      z-index: 999;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .sidebar.open { left: 0; }
+    .sidebar-overlay.open { display: block; }
+
+    input, select {
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background-color: var(--input-bg);
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+    }
+    input:focus, select:focus { border-color: var(--primary); }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    @media (min-width: 600px) {
+      .form-grid { grid-template-columns: 2fr 1fr 1fr; }
+    }
+
+    .action-sub-row { display: flex; gap: 8px; margin-top: 6px; }
+    .geo-btn { background: #8b5cf6; color: white; border: none; font-size: 0.85rem; padding: 8px 12px; border-radius: var(--radius); cursor: pointer; flex: 1; }
+    .recurring-trigger-btn { background: #3b82f6; color: white; border: none; font-size: 0.85rem; padding: 8px 12px; border-radius: var(--radius); cursor: pointer; flex: 1; }
+
+    .view-toggle-btns { display: flex; gap: 4px; background: var(--input-bg); padding: 3px; border-radius: var(--radius); border: 1px solid var(--border); }
+    .view-btn { padding: 6px 10px; font-size: 0.8rem; border: none; background: transparent; color: var(--text-muted); border-radius: 8px; cursor: pointer; }
+    .view-btn.active { background: var(--card-bg); color: var(--primary); font-weight: 700; }
+
+    .tiles-container { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+    .tile-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+    .tile-left { display: flex; flex-direction: column; gap: 2px; }
+    .tile-title { font-weight: 700; font-size: 0.9rem; }
+    .tile-sub { font-size: 0.75rem; color: var(--text-muted); }
+    .tile-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+    .tile-amount { font-weight: 800; font-size: 0.95rem; }
+
+    .table-container { overflow-x: auto; margin-top: 10px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: 12px 10px; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+    th { background: var(--bg); color: var(--text-muted); cursor: pointer; }
+
+    #map { height: 240px; width: 100%; border-radius: var(--radius); margin-top: 10px; z-index: 1; }
+    .chart-container { position: relative; height: 240px; width: 100%; }
+  </style>
+</head>
+<body>
+
+  <!-- =================================================================== -->
+  <!-- TELA DE FORCED LOGIN (LOCK SCREEN) -->
+  <!-- =================================================================== -->
+  <div id="auth-lock-screen" class="login-screen">
+    <div class="login-box">
+      <img src="icon-512.png" class="login-logo" alt="Finanzzas Logo">
+      <div>
+        <h2 style="font-size: 1.6rem; font-weight: 800; color: var(--primary);">Finanzzas</h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Gerenciador Financeiro Pessoal</p>
+      </div>
+
+      <p style="font-size: 0.88rem; line-height: 1.4; color: var(--text); margin: 8px 0;">
+        Faça login com sua conta do Google para proteger e sincronizar seus dados em nuvem com segurança.
+      </p>
+
+      <button class="btn btn-primary" onclick="loginWithGoogle()" style="padding: 14px; font-size: 1rem; background: #4285f4; color: white; display: flex; gap: 10px; align-items: center; justify-content: center;">
+        <svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1H12v3.8h5.35c-.25 1.5-1.5 4.35-5.35 4.35-3.2 0-5.85-2.65-5.85-5.85S8.8 7.55 12 7.55c1.8 0 3 .75 3.7 1.4L18.4 6.3C16.8 4.8 14.6 4 12 4 7.58 4 4 7.58 4 12s3.58 8 8 8c4.6 0 7.65-3.2 7.65-7.8 0-.5-.05-.8-.3-1.1z"/></svg>
+        Entrar com Google
+      </button>
+    </div>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- CONTEÚDO PRINCIPAL DO APLICATIVO (PROTEGIDO POR LOGIN) -->
+  <!-- =================================================================== -->
+  <div id="app-main-content" class="container hidden">
+    <!-- Overlay Sidebar -->
+    <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+    <!-- Aba Lateral (Sidebar) -->
+    <div class="sidebar" id="sidebar">
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 14px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <img src="icon-192.png" class="brand-logo" alt="Logo">
+            <h3 style="color: var(--primary);">Finanzzas</h3>
+          </div>
+          <button class="close-circle-btn" onclick="toggleSidebar()">✕</button>
+        </div>
+
+        <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 12px;">
+          <h4 style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">☁️ Sua Conta</h4>
+          <div id="auth-status-container"></div>
+        </div>
+
+        <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 12px;">
+          <h4 style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Backup em Arquivo</h4>
+          <button class="btn btn-info" style="width: 100%;" onclick="exportDataJSON()">📤 Exportar JSON</button>
+          <div style="margin-top: 10px;">
+            <input type="file" id="import-file" accept=".json" style="width: 100%; font-size: 0.8rem;">
+            <button class="btn btn-secondary" onclick="importDataJSON()" style="width: 100%; margin-top: 6px;">
+              📥 Importar Backup
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div style="border-top: 1px solid var(--border); padding-top: 16px;">
+        <button class="btn btn-primary" onclick="openInExternalBrowser()" style="width: 100%; margin-top: 0; background: var(--card-bg); color: var(--text); border: 1px solid var(--border);">
+          🌐 Abrir no Navegador
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal Detalhes -->
+    <div class="modal-overlay" id="detail-modal">
+      <div class="modal">
+        <div class="modal-header-sticky">
+          <h3>📄 Detalhes do Registro</h3>
+          <button class="close-circle-btn" onclick="toggleDetailModal()">✕</button>
+        </div>
+        <div id="detail-modal-body" style="display: flex; flex-direction: column; gap: 12px;"></div>
+      </div>
+    </div>
+
+    <!-- Modal Fixos & Parcelas -->
+    <div class="modal-overlay" id="recurring-modal">
+      <div class="modal">
+        <div class="modal-header-sticky">
+          <h3>📅 Dívidas Fixas & Parceladas</h3>
+          <button class="close-circle-btn" onclick="toggleRecurringModal()">✕</button>
+        </div>
+
+        <form id="recurring-form" onsubmit="addRecurringExpense(event)" style="border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 16px;">
+          <h4 style="font-size: 0.85rem; margin-bottom: 12px; color: var(--primary); text-transform: uppercase;">➕ Cadastrar Projeção</h4>
+          
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600;">Descrição</label>
+              <input type="text" id="rec-desc" placeholder="Ex: Aluguel, Financiamento" required style="width: 100%;">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 600;">Valor (R$)</label>
+                <input type="number" step="0.01" id="rec-amount" placeholder="0,00" required style="width: 100%;">
+              </div>
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 600;">Dia Vencimento</label>
+                <input type="number" id="rec-day" min="1" max="31" placeholder="Ex: 10" required style="width: 100%;">
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 600;">Tipo</label>
+                <select id="rec-type" onchange="toggleInstallmentsField()" style="width: 100%;">
+                  <option value="fixed">Gasto Fixo Mensal</option>
+                  <option value="installment">Compra Parcelada</option>
+                </select>
+              </div>
+              <div id="installments-box" style="display: none;">
+                <label style="font-size: 0.8rem; font-weight: 600;">Qtd. Parcelas</label>
+                <input type="number" id="rec-installments" min="2" max="120" value="2" style="width: 100%;">
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 600;">Mês de Início</label>
+                <input type="month" id="rec-start-month" required style="width: 100%;">
+              </div>
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 600;">Categoria</label>
+                <select id="rec-category" style="width: 100%;">
+                  <option value="Moradia">Moradia</option>
+                  <option value="Alimentação">Alimentação</option>
+                  <option value="Transporte">Transporte</option>
+                  <option value="Lazer">Lazer</option>
+                  <option value="Trabalho">Trabalho</option>
+                  <option value="Outros">Outros</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="margin-top: 6px;">Agendar Projeção</button>
+          </div>
+        </form>
+
+        <div>
+          <h4 style="font-size: 0.85rem; margin-bottom: 10px; color: var(--text-muted); text-transform: uppercase;">📋 Agendamentos Ativos</h4>
+          <div id="recurring-rules-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Header Principal -->
+    <header>
+      <div class="header-left">
+        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+        <img src="icon-192.png" class="brand-logo" alt="Finanzzas Logo">
+        <h1>Finanzzas</h1>
+      </div>
+      <button class="theme-toggle" onclick="toggleTheme()">☀️ Claro</button>
+    </header>
+
+    <!-- Barra de Mês e Exportação CSV -->
+    <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+      <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
+        <label for="month-picker" style="font-size: 0.85rem; font-weight: 600;">Mês:</label>
+        <input type="month" id="month-picker" onchange="updateUI()" style="flex: 1;">
+        <button class="btn btn-secondary" onclick="exportToCSV()" style="padding: 10px 12px; font-size: 0.85rem;">
+          📥 .CSV
+        </button>
+      </div>
+    </div>
+
+    <!-- TELA 1: INÍCIO -->
+    <div id="tab-home" class="tab-view">
+      <div class="summary-grid">
+        <div class="card">
+          <h3>Receitas</h3>
+          <p id="total-income" class="text-success">R$ 0,00</p>
+        </div>
+        <div class="card">
+          <h3>Despesas</h3>
+          <p id="total-expense" class="text-danger">R$ 0,00</p>
+        </div>
+        <div class="card">
+          <h3>Saldo Final</h3>
+          <p id="total-balance" class="text-primary">R$ 0,00</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-bottom: 14px;">Novo Registro Avulso</h3>
+        <form id="expense-form" onsubmit="addTransaction(event)">
+          <div class="form-grid">
+            <div>
+              <label style="font-size: 0.8rem;">Descrição</label>
+              <input type="text" id="desc" placeholder="Ex: Mercado, Combustível" required style="width: 100%;">
+            </div>
+            <div>
+              <label style="font-size: 0.8rem;">Valor (R$)</label>
+              <input type="number" step="0.01" id="amount" placeholder="0,00" required style="width: 100%;">
+            </div>
+            <div>
+              <label style="font-size: 0.8rem;">Tipo</label>
+              <select id="type" style="width: 100%;">
+                <option value="expense">Despesa 🔴</option>
+                <option value="income">Receita 🟢</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid" style="margin-top: 10px;">
+            <div>
+              <label style="font-size: 0.8rem;">Categoria</label>
+              <select id="category" style="width: 100%;">
+                <option value="Alimentação">Alimentação</option>
+                <option value="Transporte">Transporte</option>
+                <option value="Moradia">Moradia</option>
+                <option value="Lazer">Lazer</option>
+                <option value="Trabalho">Trabalho</option>
+                <option value="Outros">Outros</option>
+              </select>
+            </div>
+            <div style="grid-column: span 2;">
+              <label style="font-size: 0.8rem;">Ações Adicionais</label>
+              <div class="action-sub-row">
+                <button type="button" class="geo-btn" onclick="captureLocation()">📍 GPS Atual</button>
+                <button type="button" class="recurring-trigger-btn" onclick="toggleRecurringModal()">📌 Fixos & Parcelas</button>
+              </div>
+              <span id="geo-status" style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 4px;"></span>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Adicionar Transação</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+          <h3>Histórico Mensal</h3>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="view-toggle-btns">
+              <button class="view-btn active" id="btn-view-tiles" onclick="setViewMode('tiles')">🎴 Cards</button>
+              <button class="view-btn" id="btn-view-table" onclick="setViewMode('table')">📊 Tabela</button>
+            </div>
+            <input type="text" id="search-input" placeholder="🔍 Buscar..." onkeyup="updateUI()" style="width: 110px; font-size: 0.85rem; padding: 6px 10px;">
+          </div>
+        </div>
+
+        <div id="tiles-wrapper" class="tiles-container"></div>
+
+        <div id="table-wrapper" class="table-container" style="display: none;">
+          <table id="transaction-table">
+            <thead>
+              <tr>
+                <th onclick="changeSort('date')">Data</th>
+                <th onclick="changeSort('desc')">Descrição</th>
+                <th onclick="changeSort('category')">Categoria</th>
+                <th onclick="changeSort('amount')">Valor</th>
+                <th onclick="changeSort('status')">Status</th>
+                <th>GPS</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="transaction-list"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TELA 2: ANÁLISE -->
+    <div id="tab-analytics" class="tab-view hidden">
+      <div class="card">
+        <h3 style="color: var(--primary);">💡 Diagnóstico Financeiro Inteligente</h3>
+        <div class="feedback-box" id="feedback-container">
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Analisando seus hábitos deste mês...</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Métricas da Saúde Financeira</h3>
+        <div class="kpi-grid" style="margin-top: 10px;">
+          <div class="kpi-card">
+            <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Taxa de Poupança</span>
+            <p id="kpi-savings-rate" class="text-primary" style="font-size: 1.4rem; margin-top: 4px;">0%</p>
+          </div>
+          <div class="kpi-card">
+            <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Média Diária de Gastos</span>
+            <p id="kpi-daily-avg" class="text-danger" style="font-size: 1.4rem; margin-top: 4px;">R$ 0,00</p>
+          </div>
+          <div class="kpi-card">
+            <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Maior Ofensor de Gastos</span>
+            <p id="kpi-top-category" style="font-size: 1.1rem; font-weight:700; margin-top: 4px;">-</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Distribuição por Categoria</h3>
+        <div class="chart-container">
+          <canvas id="expenseChart"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Mapa de Gastos</h3>
+        <div id="map"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dock Flutuante no Rodapé -->
+  <div id="bottom-dock-container" class="bottom-dock-overlay hidden">
+    <div class="bottom-dock">
+      <button class="dock-btn active" id="dock-home" onclick="switchTab('home')">
+        <span>🏠</span> Início
+      </button>
+      <button class="dock-btn" id="dock-analytics" onclick="switchTab('analytics')">
+        <span>📊</span> Análise
+      </button>
+    </div>
+  </div>
+
+  <script>
+    let transactions = [];
+    let recurringRules = [];
+    let currentViewMode = localStorage.getItem('viewMode') || 'tiles';
+    let currentUser = null;
+    let currentLocation = null;
+    let chartInstance = null;
+    let mapInstance = null;
+    let mapMarkers = [];
+    let firestoreUnsubscribe = null;
+
+    let currentSortColumn = 'date';
+    let sortAscending = true;
+
+    function setCurrentSystemMonth() {
+      const now = new Date();
+      const monthFormatted = String(now.getMonth() + 1).padStart(2, '0');
+      const year = now.getFullYear();
+      const currentMonthStr = `${year}-${monthFormatted}`;
+
+      document.getElementById('month-picker').value = currentMonthStr;
+      document.getElementById('rec-start-month').value = currentMonthStr;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      setCurrentSystemMonth();
+      setViewMode(currentViewMode);
+
+      const checkFirebaseInterval = setInterval(() => {
+        if (window.firebaseAuth) {
+          clearInterval(checkFirebaseInterval);
+          
+          // OUVINTE PRINCIPAL DE AUTENTICAÇÃO (FORCED LOGIN)
+          window.onAuthStateChanged(window.firebaseAuth, (user) => {
+            currentUser = user;
+
+            if (user) {
+              // USUÁRIO LOGADO: Exibe o App e Conecta no Firestore
+              document.getElementById('auth-lock-screen').classList.add('hidden');
+              document.getElementById('app-main-content').classList.remove('hidden');
+              document.getElementById('bottom-dock-container').classList.remove('hidden');
+              
+              updateAuthUI();
+              syncFromFirebase(user.uid);
+            } else {
+              // USUÁRIO DESLOGADO: Desconecta o Firestore, limpa memória e tranca a tela
+              if (firestoreUnsubscribe) {
+                firestoreUnsubscribe();
+                firestoreUnsubscribe = null;
+              }
+
+              transactions = [];
+              recurringRules = [];
+              localStorage.removeItem('transactions');
+              localStorage.removeItem('recurringRules');
+
+              document.getElementById('app-main-content').classList.add('hidden');
+              document.getElementById('bottom-dock-container').classList.add('hidden');
+              document.getElementById('auth-lock-screen').classList.remove('hidden');
+            }
+          });
+        }
+      }, 200);
+    });
+
+    function loginWithGoogle() {
+      window.signInWithPopup(window.firebaseAuth, window.googleProvider)
+        .catch(err => alert("Erro ao fazer login: " + err.message));
+    }
+
+    function logoutUser() {
+      if (confirm("Deseja realmente sair da sua conta?")) {
+        window.signOut(window.firebaseAuth);
+      }
+    }
+
+    function syncFromFirebase(uid) {
+      if (firestoreUnsubscribe) firestoreUnsubscribe();
+
+      const userDocRef = window.doc(window.firebaseDb, "users", uid);
+      firestoreUnsubscribe = window.onSnapshot(userDocRef, (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          transactions = data.transactions || [];
+          recurringRules = data.recurringRules || [];
+          updateUI();
+        } else {
+          saveData(true);
+        }
+      });
+    }
+
+    function saveData(syncCloud = true) {
+      if (!currentUser) return;
+
+      if (syncCloud && window.setDoc) {
+        const userDocRef = window.doc(window.firebaseDb, "users", currentUser.uid);
+        window.setDoc(userDocRef, {
+          transactions,
+          recurringRules,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+    }
+
+    function updateAuthUI() {
+      const container = document.getElementById('auth-status-container');
+      if (currentUser) {
+        container.innerHTML = `
+          <div style="background: var(--bg); border: 1px solid var(--border); padding: 12px; border-radius: var(--radius); display: flex; align-items: center; gap: 12px;">
+            <img src="${currentUser.photoURL}" style="width: 40px; height: 40px; border-radius: 50%;" alt="Avatar">
+            <div style="flex: 1; overflow: hidden;">
+              <strong style="font-size: 0.85rem; display: block; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${currentUser.displayName}</strong>
+              <small style="font-size: 0.75rem; color: var(--primary);">☁️ Conta Conectada</small>
+            </div>
+          </div>
+          <button class="btn btn-danger" onclick="logoutUser()" style="width: 100%; margin-top: 8px;">🔒 Sair da Conta</button>
+        `;
+      }
+    }
+
+    function switchTab(tabName) {
+      document.getElementById('tab-home').classList.toggle('hidden', tabName !== 'home');
+      document.getElementById('tab-analytics').classList.toggle('hidden', tabName !== 'analytics');
+
+      document.getElementById('dock-home').classList.toggle('active', tabName === 'home');
+      document.getElementById('dock-analytics').classList.toggle('active', tabName === 'analytics');
+
+      if (tabName === 'analytics') {
+        setTimeout(() => {
+          if (!mapInstance) initMap();
+          updateUI();
+        }, 100);
+      }
+    }
+
+    function setViewMode(mode) {
+      currentViewMode = mode;
+      localStorage.setItem('viewMode', mode);
+
+      document.getElementById('btn-view-tiles').classList.toggle('active', mode === 'tiles');
+      document.getElementById('btn-view-table').classList.toggle('active', mode === 'table');
+
+      document.getElementById('tiles-wrapper').style.display = mode === 'tiles' ? 'flex' : 'none';
+      document.getElementById('table-wrapper').style.display = mode === 'table' ? 'block' : 'none';
+
+      updateUI();
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('overlay').classList.toggle('open');
+    }
+
+    function toggleRecurringModal() {
+      renderRecurringRulesList();
+      document.getElementById('recurring-modal').classList.toggle('open');
+    }
+
+    function toggleDetailModal() {
+      document.getElementById('detail-modal').classList.toggle('open');
+    }
+
+    function openDetailModal(id) {
+      const t = transactions.find(item => item.id === id);
+      if (!t) return;
+
+      const isPaid = t.status === 'paid';
+      const badgeClass = isPaid ? 'badge-paid' : 'badge-pending';
+      const badgeText = isPaid ? 'Pago ✅' : 'Pendente ⏳';
+
+      const body = document.getElementById('detail-modal-body');
+      body.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h4 style="font-size: 1.1rem;">${t.desc}</h4>
+          <span class="badge ${badgeClass}" onclick="toggleStatus(${t.id}); openDetailModal(${t.id});">${badgeText}</span>
+        </div>
+
+        <div style="background: var(--bg); padding: 12px; border-radius: var(--radius); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px;">
+          <div><strong style="font-size:0.8rem; color:var(--text-muted);">VALOR:</strong> <span class="${t.amount < 0 ? 'text-danger' : 'text-success'}" style="font-weight:800; font-size:1.1rem;">${formatCurrency(t.amount)}</span></div>
+          <div><strong style="font-size:0.8rem; color:var(--text-muted);">DATA:</strong> ${t.date}</div>
+          <div><strong style="font-size:0.8rem; color:var(--text-muted);">CATEGORIA:</strong> ${t.category}</div>
+          <div><strong style="font-size:0.8rem; color:var(--text-muted);">TIPO:</strong> ${t.ruleId ? '🔄 Agendamento Fixo/Parcelado' : '⚡ Registro Avulso'}</div>
+          <div><strong style="font-size:0.8rem; color:var(--text-muted);">GPS:</strong> ${t.location ? `Lat ${t.location.lat.toFixed(4)}, Lng${t.location.lng.toFixed(4)} 📍` : 'Não registrada'}</div>
+        </div>
+
+        <button class="btn btn-danger" onclick="deleteTransaction(${t.id}); toggleDetailModal();" style="width: 100%; margin-top: 8px;">
+          🗑️ Excluir Registro
+        </button>
+      `;
+
+      toggleDetailModal();
+    }
+
+    function toggleInstallmentsField() {
+      const recType = document.getElementById('rec-type').value;
+      document.getElementById('installments-box').style.display = recType === 'installment' ? 'block' : 'none';
+    }
+
+    function toggleTheme() {
+      const isLight = document.body.getAttribute('data-theme') === 'light';
+      document.body.setAttribute('data-theme', isLight ? 'dark' : 'light');
+      document.querySelector('.theme-toggle').textContent = isLight ? '☀️ Claro' : '🌙 Escuro';
+    }
+
+    function captureLocation() {
+      const status = document.getElementById('geo-status');
+      if (!navigator.geolocation) {
+        status.textContent = "Sem GPS.";
+        return;
+      }
+      status.textContent = "Obtendo GPS...";
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          currentLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          status.textContent = "📍 Posição capturada!";
+        },
+        () => { status.textContent = "Erro de GPS."; }
+      );
+    }
+
+    function formatCurrency(val) {
+      return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function openInExternalBrowser() {
+      window.open(window.location.href, '_blank');
+    }
+
+    function changeSort(column) {
+      if (currentSortColumn === column) {
+        sortAscending = !sortAscending;
+      } else {
+        currentSortColumn = column;
+        sortAscending = true;
+      }
+      updateUI();
+    }
+
+    function addTransaction(e) {
+      e.preventDefault();
+
+      const desc = document.getElementById('desc').value;
+      const amount = parseFloat(document.getElementById('amount').value);
+      const type = document.getElementById('type').value;
+      const category = document.getElementById('category').value;
+      const selectedMonth = document.getElementById('month-picker').value;
+
+      const transaction = {
+        id: Date.now(),
+        desc,
+        amount: type === 'expense' ? -Math.abs(amount) : Math.abs(amount),
+        category,
+        date: new Date().toLocaleDateString('pt-BR'),
+        month: selectedMonth,
+        status: 'paid',
+        location: currentLocation
+      };
+
+      transactions.unshift(transaction);
+      saveData();
+
+      currentLocation = null;
+      document.getElementById('geo-status').textContent = '';
+      document.getElementById('expense-form').reset();
+      updateUI();
+    }
+
+    function addRecurringExpense(e) {
+      e.preventDefault();
+
+      const desc = document.getElementById('rec-desc').value;
+      const amount = parseFloat(document.getElementById('rec-amount').value);
+      const day = parseInt(document.getElementById('rec-day').value);
+      const type = document.getElementById('rec-type').value;
+      const installments = type === 'installment' ? parseInt(document.getElementById('rec-installments').value) : null;
+      const startMonth = document.getElementById('rec-start-month').value;
+      const category = document.getElementById('rec-category').value;
+
+      const rule = {
+        id: Date.now(),
+        desc,
+        amount,
+        day,
+        type,
+        installments,
+        startMonth,
+        category
+      };
+
+      recurringRules.push(rule);
+      generateRecurringTransactionsForRule(rule, 24);
+
+      saveData();
+      document.getElementById('recurring-form').reset();
+      renderRecurringRulesList();
+      updateUI();
+      alert('Gasto agendado com sucesso!');
+    }
+
+    function generateRecurringTransactionsForRule(rule, monthsAhead = 24) {
+      let [year, month] = rule.startMonth.split('-').map(Number);
+      const totalCycles = rule.type === 'installment' ? rule.installments : monthsAhead;
+
+      for (let i = 0; i < totalCycles; i++) {
+        const monthFormatted = String(month).padStart(2, '0');
+        const monthKey = `${year}-${monthFormatted}`;
+        const dayFormatted = String(rule.day).padStart(2, '0');
+        const dateStr = `${dayFormatted}/${monthFormatted}/${year}`;
+
+        const descWithInfo = rule.type === 'installment'
+          ? `${rule.desc} [${i + 1}/${rule.installments}]`
+          : `${rule.desc} (Fixo)`;
+
+        const exists = transactions.some(t => t.ruleId === rule.id && t.month === monthKey && t.installmentIndex === i);
+
+        if (!exists) {
+          transactions.push({
+            id: Date.now() + Math.floor(Math.random() * 1000000),
+            ruleId: rule.id,
+            installmentIndex: i,
+            desc: descWithInfo,
+            amount: -Math.abs(rule.amount),
+            category: rule.category,
+            date: dateStr,
+            month: monthKey,
+            status: 'pending',
+            location: null
+          });
+        }
+
+        month++;
+        if (month > 12) {
+          month = 1;
+          year++;
+        }
+      }
+    }
+
+    function renderRecurringRulesList() {
+      const container = document.getElementById('recurring-rules-list');
+      if (recurringRules.length === 0) {
+        container.innerHTML = '<p style="font-size: 0.85rem; color: var(--text-muted);">Nenhum gasto recorrente agendado.</p>';
+        return;
+      }
+
+      container.innerHTML = '';
+      recurringRules.forEach(rule => {
+        const div = document.createElement('div');
+        div.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:12px; border:1px solid var(--border); border-radius:var(--radius); margin-bottom:8px; background:var(--bg);";
+        
+        const typeTxt = rule.type === 'installment' ? `${rule.installments}x` : 'Fixo Indefinido';
+        div.innerHTML = `
+          <div>
+            <strong>${rule.desc}</strong> - <span style="color:var(--danger);">${formatCurrency(rule.amount)}</span><br>
+            <small style="color:var(--text-muted);">Dia ${rule.day} | ${typeTxt}</small>
+          </div>
+          <button onclick="deleteRecurringRule(${rule.id})" class="close-circle-btn">✕</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function deleteRecurringRule(ruleId) {
+      const rule = recurringRules.find(r => r.id === ruleId);
+      if (!rule) return;
+
+      if (confirm(`Remover os lançamentos pendentes de "${rule.desc}"?`)) {
+        transactions = transactions.filter(t => !(t.ruleId === ruleId && t.status === 'pending'));
+        if (confirm(`Remover totalmente o agendamento de "${rule.desc}"?`)) {
+          recurringRules = recurringRules.filter(r => r.id !== ruleId);
+        }
+        saveData();
+        renderRecurringRulesList();
+        updateUI();
+      }
+    }
+
+    function toggleStatus(id) {
+      const transaction = transactions.find(t => t.id === id);
+      if (transaction) {
+        transaction.status = transaction.status === 'paid' ? 'pending' : 'paid';
+        saveData();
+        updateUI();
+      }
+    }
+
+    function deleteTransaction(id) {
+      transactions = transactions.filter(t => t.id !== id);
+      saveData();
+      updateUI();
+    }
+
+    function exportToCSV() {
+      const selectedMonth = document.getElementById('month-picker').value;
+      const filtered = transactions.filter(t => t.month === selectedMonth);
+
+      if (filtered.length === 0) {
+        alert('Nenhum registro para este mês.');
+        return;
+      }
+
+      let csv = '\uFEFFData;Descrição;Categoria;Valor;Status;Latitude;Longitude\n';
+      filtered.forEach(t => {
+        const val = t.amount.toString().replace('.', ',');
+        const lat = t.location ? t.location.lat : '';
+        const lng = t.location ? t.location.lng : '';
+        const statusTxt = t.status === 'paid' ? 'Pago' : 'Pendente';
+        csv += `"${t.date}";"${t.desc}";"${t.category}";"${val}";"${statusTxt}";"${lat}";"${lng}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `finanzzas_${selectedMonth}.csv`;
+      link.click();
+    }
+
+    function exportDataJSON() {
+      if (transactions.length === 0 && recurringRules.length === 0) {
+        alert('Nenhum dado para exportar.');
+        return;
+      }
+
+      const backupData = { transactions, recurringRules };
+      const dataStr = JSON.stringify(backupData, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `backup_finanzzas_${new Date().toISOString().slice(0, 10)}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importDataJSON() {
+      const fileInput = document.getElementById('import-file');
+      const file = fileInput.files[0];
+
+      if (!file) {
+        alert('Selecione um arquivo JSON.');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          const replace = confirm('Substituir registros atuais?\n\nOK = Substituir\nCancelar = Mesclar');
+
+          if (replace) {
+            transactions = imported.transactions || [];
+            recurringRules = imported.recurringRules || [];
+          } else {
+            const existingIds = new Set(transactions.map(t => t.id));
+            (imported.transactions || []).forEach(t => { if (!existingIds.has(t.id)) transactions.push(t); });
+          }
+
+          saveData();
+          updateUI();
+          toggleSidebar();
+          alert('Dados importados com sucesso!');
+          fileInput.value = '';
+        } catch (err) {
+          alert('Erro ao importar JSON: ' + err.message);
+        }
+      };
+
+      reader.readAsText(file);
+    }
+
+    function initMap() {
+      if (!mapInstance) {
+        mapInstance = L.map('map').setView([-14.235, -51.925], 4);
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+          attribution: 'Esri',
+          maxZoom: 18
+        }).addTo(mapInstance);
+      }
+    }
+
+    function updateUI() {
+      if (!currentUser) return;
+
+      const selectedMonth = document.getElementById('month-picker').value;
+      const searchTerm = (document.getElementById('search-input').value || '').toLowerCase();
+
+      recurringRules.forEach(rule => generateRecurringTransactionsForRule(rule, 24));
+
+      let filtered = transactions.filter(t => {
+        const matchesMonth = t.month === selectedMonth;
+        const matchesSearch = t.desc.toLowerCase().includes(searchTerm) ||
+                              t.category.toLowerCase().includes(searchTerm) ||
+                              t.date.toLowerCase().includes(searchTerm);
+        return matchesMonth && matchesSearch;
+      });
+
+      filtered.sort((a, b) => {
+        let valA = a[currentSortColumn];
+        let valB = b[currentSortColumn];
+
+        if (typeof valA === 'string') valA = valA.toLowerCase();
+        if (typeof valB === 'string') valB = valB.toLowerCase();
+
+        if (valA < valB) return sortAscending ? -1 : 1;
+        if (valA > valB) return sortAscending ? 1 : -1;
+        return 0;
+      });
+
+      const tilesContainer = document.getElementById('tiles-wrapper');
+      const tableBody = document.getElementById('transaction-list');
+
+      tilesContainer.innerHTML = '';
+      tableBody.innerHTML = '';
+
+      let income = 0;
+      let expense = 0;
+      const categoryTotals = {};
+
+      if (mapInstance) {
+        mapMarkers.forEach(m => mapInstance.removeLayer(m));
+        mapMarkers = [];
+      }
+
+      filtered.forEach(t => {
+        if (t.amount > 0) {
+          income += t.amount;
+        } else {
+          const absVal = Math.abs(t.amount);
+          expense += absVal;
+          categoryTotals[t.category] = (categoryTotals[t.category] || 0) + absVal;
+        }
+
+        const isPaid = t.status === 'paid';
+        const badgeClass = isPaid ? 'badge-paid' : 'badge-pending';
+        const badgeText = isPaid ? 'Pago ✅' : 'Pendente ⏳';
+        const recurringTag = t.ruleId ? '<span class="badge-recurring">🔄 Fixo/Parc</span>' : '';
+
+        // Tile (Card)
+        const tile = document.createElement('div');
+        tile.className = 'tile-card';
+        tile.onclick = (e) => {
+          if (!e.target.classList.contains('badge')) {
+            openDetailModal(t.id);
+          }
+        };
+
+        tile.innerHTML = `
+          <div class="tile-left">
+            <span class="tile-title">${t.desc} ${recurringTag}</span>
+            <span class="tile-sub">${t.date} • ${t.category} ${t.location ? '📍' : ''}</span>
+          </div>
+          <div class="tile-right">
+            <span class="tile-amount ${t.amount < 0 ? 'text-danger' : 'text-success'}">${formatCurrency(t.amount)}</span>
+            <span class="badge ${badgeClass}" onclick="event.stopPropagation(); toggleStatus(${t.id});">${badgeText}</span>
+          </div>
+        `;
+        tilesContainer.appendChild(tile);
+
+        // Tabela
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${t.date}</td>
+          <td>${t.desc} ${recurringTag}</td>
+          <td>${t.category}</td>
+          <td class="${t.amount < 0 ? 'text-danger' : 'text-success'}">${formatCurrency(t.amount)}</td>
+          <td><span class="badge ${badgeClass}" onclick="toggleStatus(${t.id})">${badgeText}</span></td>
+          <td>${t.location ? '📍' : '-'}</td>
+          <td><button onclick="deleteTransaction(${t.id})" class="close-circle-btn" style="width:22px; height:22px; font-size:0.7rem;">✕</button></td>
+        `;
+        tableBody.appendChild(tr);
+
+        if (t.location && mapInstance) {
+          const marker = L.marker([t.location.lat, t.location.lng])
+            .bindPopup(`<b>${t.desc}</b><br>${formatCurrency(t.amount)}`);
+          marker.addTo(mapInstance);
+          mapMarkers.push(marker);
+        }
+      });
+
+      document.getElementById('total-income').textContent = formatCurrency(income);
+      document.getElementById('total-expense').textContent = formatCurrency(expense);
+      document.getElementById('total-balance').textContent = formatCurrency(income - expense);
+
+      calculateAnalytics(income, expense, categoryTotals);
+      updateChart(categoryTotals);
+    }
+
+    function calculateAnalytics(income, expense, categoryTotals) {
+      let savingsRate = 0;
+      if (income > 0) {
+        savingsRate = Math.max(0, ((income - expense) / income) * 100);
+      }
+      document.getElementById('kpi-savings-rate').textContent = `${savingsRate.toFixed(1)}%`;
+
+      const daysInMonth = 30;
+      const dailyAvg = expense / daysInMonth;
+      document.getElementById('kpi-daily-avg').textContent = formatCurrency(dailyAvg);
+
+      let topCategory = '-';
+      let maxVal = 0;
+      for (const [cat, val] of Object.entries(categoryTotals)) {
+        if (val > maxVal) {
+          maxVal = val;
+          topCategory = `${cat} (${formatCurrency(val)})`;
+        }
+      }
+      document.getElementById('kpi-top-category').textContent = topCategory;
+
+      const feedbackBox = document.getElementById('feedback-container');
+      feedbackBox.innerHTML = '';
+      const feedbacks = [];
+
+      if (income === 0 && expense === 0) {
+        feedbacks.push('ℹ️ Sem registros neste mês. Adicione suas receitas e despesas na aba Início para ver o diagnóstico.');
+      } else {
+        if (expense > income) {
+          feedbacks.push('⚠️ **Alerta de Atenção:** Suas despesas superaram suas receitas neste mês. Tente identificar gastos não essenciais para cortar.');
+        } else if (savingsRate >= 20) {
+          feedbacks.push('🎉 **Excelente Gestão!** Você economizou mais de 20% do que ganhou este mês. Ótimo momento para criar uma reserva.');
+        } else {
+          feedbacks.push('👍 **Saldo Positivo:** Você fechou o mês no azul! Tente aumentar a taxa de poupança no próximo mês.');
+        }
+
+        if (maxVal > 0) {
+          const perc = ((maxVal / expense) * 100).toFixed(0);
+          feedbacks.push(`📌 **Ponto de Atenção:** A categoria **${topCategory.split(' ')[0]}** consumiu **${perc}%** de todo o seu orçamento de despesas.`);
+        }
+      }
+
+      feedbacks.forEach(text => {
+        const item = document.createElement('div');
+        item.className = 'feedback-item';
+        item.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        feedbackBox.appendChild(item);
+      });
+    }
+
+    function updateChart(categoryTotals) {
+      const ctx = document.getElementById('expenseChart').getContext('2d');
+      const labels = Object.keys(categoryTotals);
+      const data = Object.values(categoryTotals);
+
+      if (chartInstance) chartInstance.destroy();
+
+      chartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels.length ? labels : ['Sem despesas'],
+          datasets: [{
+            data: data.length ? data : [1],
+            backgroundColor: ['#ef4444', '#00ffea', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
