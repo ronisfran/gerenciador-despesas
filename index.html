@@ -10,7 +10,7 @@
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
   <link rel="apple-touch-icon" href="icon-512.png">
 
-  <!-- Meta Tags PWA (Para rodar como App Nativo no Celular) -->
+  <!-- Meta Tags PWA -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -23,15 +23,12 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
-  <!-- Firebase SDKs (v10.8.0 Modulares via CDN) -->
+  <!-- Firebase SDKs -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // =========================================================================
-    // ⚙️ CHAVES DO FIREBASE CONFIGURADAS
-    // =========================================================================
     const firebaseConfig = {
       apiKey: "AIzaSyAzoznLplw8jI6_4Kg_S7aFf4669vRtWlI",
       authDomain: "gerenciador-despesas-3f619.firebaseapp.com",
@@ -43,7 +40,6 @@
       measurementId: "G-PPXG8Z7ZM8"
     };
 
-    // Inicialização do Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
@@ -145,9 +141,6 @@
       padding: 8px 14px;
       border-radius: var(--radius);
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
 
     header h1 { 
@@ -207,12 +200,20 @@
       padding-bottom: 14px;
     }
 
-    .close-btn {
-      background: none;
+    .close-circle-btn {
+      background: #ef4444;
       border: none;
-      font-size: 1.3rem;
-      color: var(--text-muted);
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      font-size: 0.85rem;
+      font-weight: bold;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
     }
 
     .sidebar-section {
@@ -228,7 +229,6 @@
       letter-spacing: 0.5px;
     }
 
-    /* User Profile Card */
     .user-card {
       background: var(--bg);
       border: 1px solid var(--border);
@@ -264,24 +264,29 @@
       background: var(--modal-bg);
       border: 1px solid var(--border);
       border-radius: 20px;
-      padding: 24px;
+      padding: 0 20px 20px 20px;
       width: 100%;
       max-width: 560px;
       max-height: 85vh;
       overflow-y: auto;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      position: relative;
     }
 
-    .modal-header {
+    .modal-header-sticky {
+      position: sticky;
+      top: 0;
+      background: var(--modal-bg);
+      z-index: 10;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 18px;
+      padding: 18px 0 12px 0;
       border-bottom: 1px solid var(--border);
-      padding-bottom: 10px;
+      margin-bottom: 16px;
     }
 
-    /* Cards */
+    /* Cards e Layout */
     .card {
       background: var(--card-bg);
       padding: 18px;
@@ -303,12 +308,10 @@
     .text-danger { color: var(--danger); }
     .text-primary { color: var(--primary); }
 
-    /* Action Bar Limpa */
     .action-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
       gap: 12px;
     }
 
@@ -316,6 +319,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      width: 100%;
     }
 
     input, select, button {
@@ -326,7 +330,6 @@
       color: var(--text);
       font-size: 0.95rem;
       outline: none;
-      transition: border-color 0.2s;
     }
 
     input:focus, select:focus {
@@ -358,7 +361,6 @@
     .btn-info { background: #3b82f6; color: white; }
     .btn-danger { background: var(--danger); color: white; }
 
-    /* Form Layout */
     .form-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -369,6 +371,13 @@
       .form-grid { grid-template-columns: 2fr 1fr 1fr; }
     }
 
+    .action-sub-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
     .geo-btn {
       background: #8b5cf6;
       color: white;
@@ -377,10 +386,21 @@
       border-radius: var(--radius);
       cursor: pointer;
       border: none;
-      margin-top: 4px;
+      flex: 1;
     }
 
-    /* Status Badges */
+    .recurring-trigger-btn {
+      background: #3b82f6;
+      color: white;
+      font-size: 0.85rem;
+      padding: 8px 12px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      border: none;
+      flex: 1;
+    }
+
+    /* Badges */
     .badge {
       padding: 4px 10px;
       border-radius: 20px;
@@ -393,13 +413,94 @@
     .badge-pending { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
     .badge-recurring { background: rgba(0, 255, 234, 0.15); color: var(--primary); border: 1px solid rgba(0, 255, 234, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; margin-left: 4px; }
 
-    /* Tabela Otimizada */
+    /* Alternância de Exibição (Tiles vs Tabela) */
+    .view-toggle-btns {
+      display: flex;
+      gap: 4px;
+      background: var(--input-bg);
+      padding: 3px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+
+    .view-btn {
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .view-btn.active {
+      background: var(--card-bg);
+      color: var(--primary);
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    /* Tiles (Cards de Transação) */
+    .tiles-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .tile-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      cursor: pointer;
+      transition: transform 0.1s, border-color 0.2s;
+    }
+
+    .tile-card:active { transform: scale(0.99); }
+
+    .tile-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      overflow: hidden;
+    }
+
+    .tile-title {
+      font-weight: 700;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tile-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .tile-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .tile-amount {
+      font-weight: 800;
+      font-size: 0.95rem;
+    }
+
+    /* Tabela */
     .table-container { overflow-x: auto; margin-top: 10px; }
     table { width: 100%; border-collapse: collapse; text-align: left; }
     th, td { padding: 12px 10px; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
     th { background: var(--bg); color: var(--text-muted); cursor: pointer; user-select: none; font-weight: 600; }
-    th:hover { color: var(--text); }
-    th .sort-icon { font-size: 0.75rem; margin-left: 2px; color: var(--text-muted); }
 
     .rule-item {
       display: flex;
@@ -412,18 +513,11 @@
       background: var(--bg);
     }
 
-    /* Mapa e Gráfico */
     #map { height: 260px; width: 100%; border-radius: var(--radius); margin-top: 10px; z-index: 1; }
     .chart-container { position: relative; height: 240px; width: 100%; }
 
-    /* Responsividade Celular Otimizada */
     @media (max-width: 600px) {
       body { padding: 8px; }
-      .action-bar { flex-direction: column; align-items: stretch; }
-      .month-select-container { justify-content: space-between; width: 100%; }
-      .month-select-container input { width: 100%; }
-      .action-bar-btns { display: flex; gap: 8px; width: 100%; }
-      .action-bar-btns button { flex: 1; text-align: center; font-size: 0.85rem; }
     }
   </style>
 </head>
@@ -432,7 +526,7 @@
   <!-- Overlay da Aba Lateral -->
   <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
 
-  <!-- Aba Lateral (Drawer) -->
+  <!-- Aba Lateral -->
   <div class="sidebar" id="sidebar">
     <div>
       <div class="sidebar-header">
@@ -440,10 +534,9 @@
           <img src="icon-192.png" class="brand-logo" alt="Logo">
           <h3 style="color: var(--primary);">Finanzzas</h3>
         </div>
-        <button class="close-btn" onclick="toggleSidebar()">✕</button>
+        <button class="close-circle-btn" onclick="toggleSidebar()">✕</button>
       </div>
 
-      <!-- Sincronização e Login -->
       <div class="sidebar-section" style="margin-top: 20px;">
         <h4>☁️ Sincronização em Nuvem</h4>
         <div id="auth-status-container">
@@ -466,7 +559,6 @@
       </div>
     </div>
 
-    <!-- Botão de Navegador Padrão -->
     <div style="border-top: 1px solid var(--border); padding-top: 16px;">
       <button class="btn btn-primary" onclick="openInExternalBrowser()" style="width: 100%; margin-top: 0; background: var(--card-bg); color: var(--text); border: 1px solid var(--border);">
         🌐 Abrir no Navegador
@@ -474,15 +566,25 @@
     </div>
   </div>
 
+  <!-- Modal de Detalhes da Transação -->
+  <div class="modal-overlay" id="detail-modal">
+    <div class="modal">
+      <div class="modal-header-sticky">
+        <h3>📄 Detalhes do Registro</h3>
+        <button class="close-circle-btn" onclick="toggleDetailModal()">✕</button>
+      </div>
+      <div id="detail-modal-body" style="display: flex; flex-direction: column; gap: 12px;"></div>
+    </div>
+  </div>
+
   <!-- Modal de Gastos Fixos & Parcelados -->
   <div class="modal-overlay" id="recurring-modal">
     <div class="modal">
-      <div class="modal-header">
+      <div class="modal-header-sticky">
         <h3>📅 Dívidas Fixas & Parceladas</h3>
-        <button class="close-btn" onclick="toggleRecurringModal()">✕</button>
+        <button class="close-circle-btn" onclick="toggleRecurringModal()">✕</button>
       </div>
 
-      <!-- Formulário -->
       <form id="recurring-form" onsubmit="addRecurringExpense(event)" style="border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 16px;">
         <h4 style="font-size: 0.85rem; margin-bottom: 12px; color: var(--primary); text-transform: uppercase;">➕ Cadastrar Projeção</h4>
         
@@ -539,7 +641,6 @@
         </div>
       </form>
 
-      <!-- Lista de Regras Cadastradas -->
       <div>
         <h4 style="font-size: 0.85rem; margin-bottom: 10px; color: var(--text-muted); text-transform: uppercase;">📋 Agendamentos Ativos</h4>
         <div id="recurring-rules-list">
@@ -559,15 +660,14 @@
       <button class="theme-toggle" onclick="toggleTheme()">☀️ Claro</button>
     </header>
 
-    <!-- Barra de Ações Limpa -->
+    <!-- Barra de Mês e Exportação Simplificada -->
     <div class="card action-bar">
       <div class="month-select-container">
         <label for="month-picker" style="font-size: 0.85rem; font-weight: 600;">Mês:</label>
-        <input type="month" id="month-picker" onchange="updateUI()">
-      </div>
-      <div class="action-bar-btns">
-        <button class="btn btn-info" onclick="toggleRecurringModal()">📌 Fixos & Parcelas</button>
-        <button class="btn btn-secondary" onclick="exportToCSV()">📥 Relatório CSV</button>
+        <input type="month" id="month-picker" onchange="updateUI()" style="flex: 1;">
+        <button class="btn btn-secondary" onclick="exportToCSV()" title="Exportar CSV" style="padding: 10px 12px; font-size: 0.85rem;">
+          📥 .CSV
+        </button>
       </div>
     </div>
 
@@ -622,9 +722,12 @@
             </select>
           </div>
           <div style="grid-column: span 2;">
-            <label style="font-size: 0.8rem;">Localização GPS (Opcional)</label><br>
-            <button type="button" class="geo-btn" onclick="captureLocation()">📍 Capturar Posição Atual</button>
-            <span id="geo-status" style="font-size: 0.75rem; color: var(--text-muted); margin-left: 8px;"></span>
+            <label style="font-size: 0.8rem;">Ações Adicionais</label>
+            <div class="action-sub-row">
+              <button type="button" class="geo-btn" onclick="captureLocation()">📍 GPS Atual</button>
+              <button type="button" class="recurring-trigger-btn" onclick="toggleRecurringModal()">📌 Fixos & Parcelas</button>
+            </div>
+            <span id="geo-status" style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 4px;"></span>
           </div>
         </div>
 
@@ -632,14 +735,27 @@
       </form>
     </div>
 
-    <!-- Histórico -->
+    <!-- Histórico com Alternância (Tiles vs Tabela) -->
     <div class="card">
       <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
         <h3>Histórico Mensal</h3>
-        <input type="text" id="search-input" placeholder="🔍 Pesquisar..." onkeyup="updateUI()" style="width: 100%; max-width: 220px; font-size: 0.85rem; padding: 6px 12px;">
+
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <!-- Alternador de Visão -->
+          <div class="view-toggle-btns">
+            <button class="view-btn active" id="btn-view-tiles" onclick="setViewMode('tiles')">🎴 Cards</button>
+            <button class="view-btn" id="btn-view-table" onclick="setViewMode('table')">📊 Tabela</button>
+          </div>
+
+          <input type="text" id="search-input" placeholder="🔍 Buscar..." onkeyup="updateUI()" style="width: 110px; font-size: 0.85rem; padding: 6px 10px;">
+        </div>
       </div>
 
-      <div class="table-container">
+      <!-- Exibição 1: Tiles (Cards por Linha) -->
+      <div id="tiles-wrapper" class="tiles-container"></div>
+
+      <!-- Exibição 2: Tabela -->
+      <div id="table-wrapper" class="table-container" style="display: none;">
         <table id="transaction-table">
           <thead>
             <tr>
@@ -675,6 +791,7 @@
   <script>
     let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
     let recurringRules = JSON.parse(localStorage.getItem('recurringRules')) || [];
+    let currentViewMode = localStorage.getItem('viewMode') || 'tiles';
     let currentUser = null;
     let currentLocation = null;
     let chartInstance = null;
@@ -696,6 +813,7 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       setCurrentSystemMonth();
+      setViewMode(currentViewMode);
       initMap();
 
       const checkFirebaseInterval = setInterval(() => {
@@ -714,6 +832,19 @@
         }
       }, 200);
     });
+
+    function setViewMode(mode) {
+      currentViewMode = mode;
+      localStorage.setItem('viewMode', mode);
+
+      document.getElementById('btn-view-tiles').classList.toggle('active', mode === 'tiles');
+      document.getElementById('btn-view-table').classList.toggle('active', mode === 'table');
+
+      document.getElementById('tiles-wrapper').style.display = mode === 'tiles' ? 'flex' : 'none';
+      document.getElementById('table-wrapper').style.display = mode === 'table' ? 'block' : 'none';
+
+      updateUI();
+    }
 
     function loginWithGoogle() {
       window.signInWithPopup(window.firebaseAuth, window.googleProvider)
@@ -785,6 +916,41 @@
       document.getElementById('recurring-modal').classList.toggle('open');
     }
 
+    function toggleDetailModal() {
+      document.getElementById('detail-modal').classList.toggle('open');
+    }
+
+    function openDetailModal(id) {
+      const t = transactions.find(item => item.id === id);
+      if (!t) return;
+
+      const isPaid = t.status === 'paid';
+      const badgeClass = isPaid ? 'badge-paid' : 'badge-pending';
+      const badgeText = isPaid ? 'Pago ✅' : 'Pendente ⏳';
+
+      const body = document.getElementById('detail-modal-body');
+      body.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h4 style="font-size: 1.1rem;">${t.desc}</h4>
+          <span class="badge ${badgeClass}" onclick="toggleStatus(${t.id}); openDetailModal(${t.id});">${badgeText}</span>
+        </div>
+
+        <div style="background: var(--bg); padding: 12px; border-radius: var(--radius); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px;">
+          <div><strong style="font-size:0.8rem; color:var(--text-muted);">VALOR:</strong> <span class="${t.amount < 0 ? 'text-danger' : 'text-success'}" style="font-weight:800; font-size:1.1rem;">${formatCurrency(t.amount)}</span></div>
+          <div><strong style="font-size:0.8rem; color:var(--text-muted);">DATA:</strong> ${t.date}</div>
+          <div><strong style="font-size:0.8rem; color:var(--text-muted);">CATEGORIA:</strong> ${t.category}</div>
+          <div><strong style="font-size:0.8rem; color:var(--text-muted);">TIPO:</strong> ${t.ruleId ? '🔄 Agendamento Fixo/Parcelado' : '⚡ Registro Avulso'}</div>
+          <div><strong style="font-size:0.8rem; color:var(--text-muted);">LOCALIZAÇÃO GPS:</strong> ${t.location ? `Lat ${t.location.lat.toFixed(4)}, Lng${t.location.lng.toFixed(4)} 📍` : 'Não registrada'}</div>
+        </div>
+
+        <button class="btn btn-danger" onclick="deleteTransaction(${t.id}); toggleDetailModal();" style="width: 100%; margin-top: 8px;">
+          🗑️ Excluir Registro
+        </button>
+      `;
+
+      toggleDetailModal();
+    }
+
     function toggleInstallmentsField() {
       const recType = document.getElementById('rec-type').value;
       document.getElementById('installments-box').style.display = recType === 'installment' ? 'block' : 'none';
@@ -806,7 +972,7 @@
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           currentLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-          status.textContent = "📍 Posição salva!";
+          status.textContent = "📍 Posição capturada!";
         },
         () => { status.textContent = "Erro de GPS."; }
       );
@@ -817,8 +983,7 @@
     }
 
     function openInExternalBrowser() {
-      const url = window.location.href;
-      window.open(url, '_blank');
+      window.open(window.location.href, '_blank');
     }
 
     function changeSort(column) {
@@ -951,7 +1116,7 @@
               Dia ${rule.day} | ${typeTxt}
             </small>
           </div>
-          <button onclick="deleteRecurringRule(${rule.id})" class="btn btn-danger" style="font-size:0.75rem; padding: 6px 10px;">
+          <button onclick="deleteRecurringRule(${rule.id})" class="close-circle-btn">
             ✕
           </button>
         `;
@@ -996,7 +1161,7 @@
       const filtered = transactions.filter(t => t.month === selectedMonth);
 
       if (filtered.length === 0) {
-        alert('Nenhum registro encontrado para este mês.');
+        alert('Nenhum registro para este mês.');
         return;
       }
 
@@ -1105,15 +1270,11 @@
         return 0;
       });
 
-      ['date', 'desc', 'category', 'amount', 'status'].forEach(col => {
-        const icon = document.getElementById(`sort-${col}`);
-        if (icon) {
-          icon.textContent = (col === currentSortColumn) ? (sortAscending ? '▲' : '▼') : '▲▼';
-        }
-      });
+      const tilesContainer = document.getElementById('tiles-wrapper');
+      const tableBody = document.getElementById('transaction-list');
 
-      const tbody = document.getElementById('transaction-list');
-      tbody.innerHTML = '';
+      tilesContainer.innerHTML = '';
+      tableBody.innerHTML = '';
 
       let income = 0;
       let expense = 0;
@@ -1136,6 +1297,28 @@
         const badgeText = isPaid ? 'Pago ✅' : 'Pendente ⏳';
         const recurringTag = t.ruleId ? '<span class="badge-recurring">🔄 Fixo/Parc</span>' : '';
 
+        // Renderizar Tile (Card)
+        const tile = document.createElement('div');
+        tile.className = 'tile-card';
+        tile.onclick = (e) => {
+          if (!e.target.classList.contains('badge')) {
+            openDetailModal(t.id);
+          }
+        };
+
+        tile.innerHTML = `
+          <div class="tile-left">
+            <span class="tile-title">${t.desc} ${recurringTag}</span>
+            <span class="tile-sub">${t.date} • ${t.category} ${t.location ? '📍' : ''}</span>
+          </div>
+          <div class="tile-right">
+            <span class="tile-amount ${t.amount < 0 ? 'text-danger' : 'text-success'}">${formatCurrency(t.amount)}</span>
+            <span class="badge ${badgeClass}" onclick="event.stopPropagation(); toggleStatus(${t.id});">${badgeText}</span>
+          </div>
+        `;
+        tilesContainer.appendChild(tile);
+
+        // Renderizar Tabela
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${t.date}</td>
@@ -1144,9 +1327,9 @@
           <td class="${t.amount < 0 ? 'text-danger' : 'text-success'}">${formatCurrency(t.amount)}</td>
           <td><span class="badge ${badgeClass}" onclick="toggleStatus(${t.id})">${badgeText}</span></td>
           <td>${t.location ? '📍' : '-'}</td>
-          <td><button onclick="deleteTransaction(${t.id})" style="background:none;border:none;color:var(--danger);cursor:pointer;font-weight:bold;">✕</button></td>
+          <td><button onclick="deleteTransaction(${t.id})" class="close-circle-btn" style="width:22px; height:22px; font-size:0.7rem;">✕</button></td>
         `;
-        tbody.appendChild(tr);
+        tableBody.appendChild(tr);
 
         if (t.location && mapInstance) {
           const marker = L.marker([t.location.lat, t.location.lng])
