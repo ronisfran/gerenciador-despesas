@@ -2,8 +2,20 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gerenciador de Despesas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Finanzzas - Gerenciador Financeiro</title>
+
+  <!-- Conexão PWA Manifest & Ícones -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-512.png">
+
+  <!-- Meta Tags PWA (Para rodar como App Nativo no Celular) -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Finanzzas">
+  <meta name="theme-color" content="#0f172a">
   
   <!-- Chart.js para Gráficos -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -18,18 +30,16 @@
     import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     // =========================================================================
-    // ⚙️ COLE SUAS CHAVES DO FIREBASE AQUI
+    // ⚙️ MANTENHA SUAS CHAVES DO FIREBASE AQUI
     // =========================================================================
-   const firebaseConfig = {
-    apiKey: "AIzaSyAzoznLplw8jI6_4Kg_S7aFf4669vRtWlI",
-    authDomain: "gerenciador-despesas-3f619.firebaseapp.com",
-    databaseURL: "https://gerenciador-despesas-3f619-default-rtdb.firebaseio.com",
-    projectId: "gerenciador-despesas-3f619",
-    storageBucket: "gerenciador-despesas-3f619.firebasestorage.app",
-    messagingSenderId: "815268328722",
-    appId: "1:815268328722:web:e66b6af622f7332c036fcb",
-    measurementId: "G-PPXG8Z7ZM8"
-  };
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY_AQUI",
+      authDomain: "SEU_PROJETO.firebaseapp.com",
+      projectId: "SEU_PROJETO_ID",
+      storageBucket: "SEU_PROJETO.appspot.com",
+      messagingSenderId: "SEU_SENDER_ID",
+      appId: "SEU_APP_ID"
+    };
 
     // Inicialização do Firebase
     const app = initializeApp(firebaseConfig);
@@ -50,38 +60,49 @@
 
   <style>
     :root {
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
-      --text: #0f172a;
-      --text-muted: #64748b;
-      --border: #e2e8f0;
-      --primary: #2563eb;
-      --success: #16a34a;
-      --danger: #dc2626;
-      --warning: #d97706;
-      --input-bg: #ffffff;
-      --sidebar-bg: #ffffff;
-      --modal-bg: #ffffff;
-    }
-
-    [data-theme="dark"] {
       --bg: #0f172a;
       --card-bg: #1e293b;
       --text: #f8fafc;
       --text-muted: #94a3b8;
       --border: #334155;
-      --primary: #3b82f6;
+      --primary: #00ffea;
+      --primary-hover: #00d7c6;
+      --primary-text: #0f172a;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
       --input-bg: #0f172a;
       --sidebar-bg: #1e293b;
       --modal-bg: #1e293b;
+      --radius: 14px;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    [data-theme="light"] {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --primary: #00c4b4;
+      --primary-hover: #00a396;
+      --primary-text: #ffffff;
+      --input-bg: #f1f5f9;
+      --sidebar-bg: #ffffff;
+      --modal-bg: #ffffff;
+    }
+
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
 
     body {
       background-color: var(--bg);
       color: var(--text);
-      padding: 16px;
+      padding: 12px;
       display: flex;
       justify-content: center;
       transition: background-color 0.3s, color 0.3s;
@@ -89,17 +110,17 @@
 
     .container {
       width: 100%;
-      max-width: 850px;
+      max-width: 800px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 16px;
     }
 
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 0;
+      padding: 8px 0;
     }
 
     .header-left {
@@ -108,33 +129,51 @@
       gap: 12px;
     }
 
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+    }
+
     .menu-btn {
       background: var(--card-bg);
       border: 1px solid var(--border);
       color: var(--text);
       font-size: 1.2rem;
-      padding: 6px 12px;
-      border-radius: 8px;
+      padding: 8px 14px;
+      border-radius: var(--radius);
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    header h1 { font-size: 1.4rem; }
+    header h1 { 
+      font-size: 1.4rem; 
+      font-weight: 800; 
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #00ffea, #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
 
     .theme-toggle {
       background: var(--card-bg);
       border: 1px solid var(--border);
       color: var(--text);
       padding: 8px 12px;
-      border-radius: 8px;
+      border-radius: var(--radius);
       cursor: pointer;
       font-weight: 600;
+      font-size: 0.85rem;
     }
 
     /* Aba Lateral (Drawer) */
     .sidebar-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(6px);
       z-index: 998;
       display: none;
     }
@@ -151,8 +190,8 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      transition: left 0.3s ease;
-      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+      transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 4px 0 24px rgba(0,0,0,0.3);
     }
 
     .sidebar.open { left: 0; }
@@ -163,27 +202,28 @@
       justify-content: space-between;
       align-items: center;
       border-bottom: 1px solid var(--border);
-      padding-bottom: 12px;
+      padding-bottom: 14px;
     }
 
     .close-btn {
       background: none;
       border: none;
-      font-size: 1.4rem;
-      color: var(--text);
+      font-size: 1.3rem;
+      color: var(--text-muted);
       cursor: pointer;
     }
 
     .sidebar-section {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
     }
 
     .sidebar-section h4 {
-      font-size: 0.9rem;
+      font-size: 0.8rem;
       color: var(--text-muted);
       text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     /* User Profile Card */
@@ -191,24 +231,24 @@
       background: var(--bg);
       border: 1px solid var(--border);
       padding: 12px;
-      border-radius: 8px;
-      margin-bottom: 15px;
+      border-radius: var(--radius);
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
 
     .user-avatar {
-      width: 36px;
-      height: 36px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
     }
 
-    /* Modal Flutuante */
+    /* Modais Flutuantes */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.6);
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(6px);
       z-index: 1000;
       display: none;
       justify-content: center;
@@ -221,75 +261,99 @@
     .modal {
       background: var(--modal-bg);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
+      border-radius: 20px;
+      padding: 24px;
       width: 100%;
-      max-width: 600px;
-      max-height: 90vh;
+      max-width: 560px;
+      max-height: 85vh;
       overflow-y: auto;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
     }
 
     .modal-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
+      margin-bottom: 18px;
       border-bottom: 1px solid var(--border);
-      padding-bottom: 8px;
+      padding-bottom: 10px;
     }
 
     /* Cards */
     .card {
       background: var(--card-bg);
       padding: 18px;
-      border-radius: 12px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      border-radius: var(--radius);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       border: 1px solid var(--border);
     }
 
     .summary-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
     }
 
-    .card h3 { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
-    .card p { font-size: 1.25rem; font-weight: 700; }
+    .card h3 { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .card p { font-size: 1.3rem; font-weight: 800; }
 
     .text-success { color: var(--success); }
     .text-danger { color: var(--danger); }
-    .text-warning { color: var(--warning); }
+    .text-primary { color: var(--primary); }
 
-    /* Action Bar */
+    /* Action Bar Limpa */
     .action-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 12px;
+    }
+
+    .month-select-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     input, select, button {
-      padding: 10px 12px;
-      border-radius: 8px;
+      padding: 10px 14px;
+      border-radius: var(--radius);
       border: 1px solid var(--border);
       background-color: var(--input-bg);
       color: var(--text);
       font-size: 0.95rem;
       outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary);
     }
 
     .btn {
       cursor: pointer;
-      font-weight: 600;
+      font-weight: 700;
       border: none;
-      transition: opacity 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: opacity 0.2s, transform 0.1s;
     }
 
-    .btn-primary { background: var(--primary); color: white; width: 100%; margin-top: 10px; }
+    .btn:active { transform: scale(0.98); }
+
+    .btn-primary { 
+      background: var(--primary); 
+      color: var(--primary-text); 
+      width: 100%; 
+      margin-top: 10px; 
+      padding: 12px; 
+    }
+    
     .btn-secondary { background: #059669; color: white; }
-    .btn-info { background: #8b5cf6; color: white; }
+    .btn-info { background: #3b82f6; color: white; }
     .btn-danger { background: var(--danger); color: white; }
 
     /* Form Layout */
@@ -307,8 +371,8 @@
       background: #8b5cf6;
       color: white;
       font-size: 0.85rem;
-      padding: 8px;
-      border-radius: 6px;
+      padding: 8px 12px;
+      border-radius: var(--radius);
       cursor: pointer;
       border: none;
       margin-top: 4px;
@@ -316,38 +380,49 @@
 
     /* Status Badges */
     .badge {
-      padding: 4px 8px;
-      border-radius: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
       font-size: 0.75rem;
       font-weight: 700;
       cursor: pointer;
+      display: inline-block;
     }
-    .badge-paid { background: #dcfce7; color: #15803d; }
-    .badge-pending { background: #fef3c7; color: #b45309; }
-    .badge-recurring { background: #e0e7ff; color: #3730a3; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; margin-left: 4px; }
+    .badge-paid { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-pending { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-recurring { background: rgba(0, 255, 234, 0.15); color: var(--primary); border: 1px solid rgba(0, 255, 234, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; margin-left: 4px; }
 
-    /* Tabela */
+    /* Tabela Otimizada */
     .table-container { overflow-x: auto; margin-top: 10px; }
     table { width: 100%; border-collapse: collapse; text-align: left; }
-    th, td { padding: 10px; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
-    th { background: var(--bg); color: var(--text-muted); cursor: pointer; user-select: none; }
-    th:hover { background: var(--border); }
-    th .sort-icon { font-size: 0.75rem; margin-left: 4px; color: var(--text-muted); }
+    th, td { padding: 12px 10px; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+    th { background: var(--bg); color: var(--text-muted); cursor: pointer; user-select: none; font-weight: 600; }
+    th:hover { color: var(--text); }
+    th .sort-icon { font-size: 0.75rem; margin-left: 2px; color: var(--text-muted); }
 
     .rule-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px;
+      padding: 12px;
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: var(--radius);
       margin-bottom: 8px;
       background: var(--bg);
     }
 
     /* Mapa e Gráfico */
-    #map { height: 280px; width: 100%; border-radius: 8px; margin-top: 10px; z-index: 1; }
-    .chart-container { position: relative; height: 260px; width: 100%; }
+    #map { height: 260px; width: 100%; border-radius: var(--radius); margin-top: 10px; z-index: 1; }
+    .chart-container { position: relative; height: 240px; width: 100%; }
+
+    /* Responsividade Celular Otimizada */
+    @media (max-width: 600px) {
+      body { padding: 8px; }
+      .action-bar { flex-direction: column; align-items: stretch; }
+      .month-select-container { justify-content: space-between; width: 100%; }
+      .month-select-container input { width: 100%; }
+      .action-bar-btns { display: flex; gap: 8px; width: 100%; }
+      .action-bar-btns button { flex: 1; text-align: center; font-size: 0.85rem; }
+    }
   </style>
 </head>
 <body>
@@ -359,7 +434,10 @@
   <div class="sidebar" id="sidebar">
     <div>
       <div class="sidebar-header">
-        <h3>⚙️ Menu & Dados</h3>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <img src="icon-192.png" class="brand-logo" alt="Logo">
+          <h3 style="color: var(--primary);">Finanzzas</h3>
+        </div>
         <button class="close-btn" onclick="toggleSidebar()">✕</button>
       </div>
 
@@ -367,20 +445,20 @@
       <div class="sidebar-section" style="margin-top: 20px;">
         <h4>☁️ Sincronização em Nuvem</h4>
         <div id="auth-status-container">
-          <button class="btn btn-primary" id="login-btn" onclick="loginWithGoogle()" style="margin-top: 0; background: #4285f4;">
+          <button class="btn btn-primary" id="login-btn" onclick="loginWithGoogle()" style="margin-top: 0; background: #4285f4; color: white;">
             🔑 Entrar com Google
           </button>
         </div>
       </div>
 
-      <div class="sidebar-section" style="margin-top: 20px;">
-        <h4>Backup Local (Arquivo)</h4>
+      <div class="sidebar-section" style="margin-top: 24px;">
+        <h4>Backup em Arquivo</h4>
         <button class="btn btn-info" style="width: 100%;" onclick="exportDataJSON()">📤 Exportar JSON</button>
         
         <div style="margin-top: 10px;">
           <input type="file" id="import-file" accept=".json" style="width: 100%; font-size: 0.8rem;">
           <button class="btn btn-secondary" onclick="importDataJSON()" style="width: 100%; margin-top: 6px;">
-            📥 Importar Arquivo
+            📥 Importar Backup
           </button>
         </div>
       </div>
@@ -388,8 +466,8 @@
 
     <!-- Botão de Navegador Padrão -->
     <div style="border-top: 1px solid var(--border); padding-top: 16px;">
-      <button class="btn btn-primary" onclick="openInExternalBrowser()" style="width: 100%; margin-top: 0;">
-        🌐 Abrir no Safari / Chrome
+      <button class="btn btn-primary" onclick="openInExternalBrowser()" style="width: 100%; margin-top: 0; background: var(--card-bg); color: var(--text); border: 1px solid var(--border);">
+        🌐 Abrir no Navegador
       </button>
     </div>
   </div>
@@ -398,18 +476,18 @@
   <div class="modal-overlay" id="recurring-modal">
     <div class="modal">
       <div class="modal-header">
-        <h3>📅 Configurar e Gerenciar Gastos Projetados</h3>
+        <h3>📅 Dívidas Fixas & Parceladas</h3>
         <button class="close-btn" onclick="toggleRecurringModal()">✕</button>
       </div>
 
-      <!-- Novo Formulário -->
+      <!-- Formulário -->
       <form id="recurring-form" onsubmit="addRecurringExpense(event)" style="border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 16px;">
-        <h4 style="font-size: 0.9rem; margin-bottom: 10px; color: var(--primary);">➕ Cadastrar Novo Gasto Fixo ou Parcelado</h4>
+        <h4 style="font-size: 0.85rem; margin-bottom: 12px; color: var(--primary); text-transform: uppercase;">➕ Cadastrar Projeção</h4>
         
         <div style="display: flex; flex-direction: column; gap: 12px;">
           <div>
-            <label style="font-size: 0.8rem; font-weight: 600;">Descrição da Dívida/Gasto</label>
-            <input type="text" id="rec-desc" placeholder="Ex: Aluguel, Sapato, Curso" required style="width: 100%;">
+            <label style="font-size: 0.8rem; font-weight: 600;">Descrição</label>
+            <input type="text" id="rec-desc" placeholder="Ex: Aluguel, Financiamento, Sapato" required style="width: 100%;">
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -418,21 +496,21 @@
               <input type="number" step="0.01" id="rec-amount" placeholder="0,00" required style="width: 100%;">
             </div>
             <div>
-              <label style="font-size: 0.8rem; font-weight: 600;">Dia do Vencimento</label>
+              <label style="font-size: 0.8rem; font-weight: 600;">Dia Vencimento</label>
               <input type="number" id="rec-day" min="1" max="31" placeholder="Ex: 10" required style="width: 100%;">
             </div>
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
             <div>
-              <label style="font-size: 0.8rem; font-weight: 600;">Modalidade</label>
+              <label style="font-size: 0.8rem; font-weight: 600;">Tipo</label>
               <select id="rec-type" onchange="toggleInstallmentsField()" style="width: 100%;">
-                <option value="fixed">Gasto Fixo (Indefinido)</option>
+                <option value="fixed">Gasto Fixo Mensal</option>
                 <option value="installment">Compra Parcelada</option>
               </select>
             </div>
             <div id="installments-box" style="display: none;">
-              <label style="font-size: 0.8rem; font-weight: 600;">Qtd. de Parcelas</label>
+              <label style="font-size: 0.8rem; font-weight: 600;">Qtd. Parcelas</label>
               <input type="number" id="rec-installments" min="2" max="120" value="2" style="width: 100%;">
             </div>
           </div>
@@ -455,13 +533,13 @@
             </div>
           </div>
 
-          <button type="submit" class="btn btn-info" style="margin-top: 6px;">Agendar e Projetar Gastos</button>
+          <button type="submit" class="btn btn-primary" style="margin-top: 6px; width: 100%;">Agendar Projeção</button>
         </div>
       </form>
 
       <!-- Lista de Regras Cadastradas -->
       <div>
-        <h4 style="font-size: 0.9rem; margin-bottom: 10px; color: var(--text-muted);">📋 Dívidas e Projetados Ativos</h4>
+        <h4 style="font-size: 0.85rem; margin-bottom: 10px; color: var(--text-muted); text-transform: uppercase;">📋 Agendamentos Ativos</h4>
         <div id="recurring-rules-list">
           <p style="font-size: 0.85rem; color: var(--text-muted);">Nenhum gasto recorrente projetado.</p>
         </div>
@@ -473,25 +551,25 @@
     <header>
       <div class="header-left">
         <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-        <h1>📊 Gerenciador de Despesas</h1>
+        <img src="icon-192.png" class="brand-logo" alt="Finanzzas Logo">
+        <h1>Finanzzas</h1>
       </div>
-      <button class="theme-toggle" onclick="toggleTheme()">🌙 Modo Escuro</button>
+      <button class="theme-toggle" onclick="toggleTheme()">☀️ Claro</button>
     </header>
 
-    <!-- Barra de Ações Rápidas -->
+    <!-- Barra de Ações Limpa -->
     <div class="card action-bar">
-      <div>
-        <label for="month-picker" style="font-size: 0.85rem; font-weight: 600;">Mês de Referência:</label>
+      <div class="month-select-container">
+        <label for="month-picker" style="font-size: 0.85rem; font-weight: 600;">Mês:</label>
         <input type="month" id="month-picker" onchange="updateUI()">
       </div>
-      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-        <button class="btn btn-info" onclick="toggleRecurringModal()">📌 Fixos & Parcelados</button>
-        <button class="btn btn-secondary" onclick="exportToCSV()">📥 Exportar CSV</button>
-        <button class="btn btn-danger" onclick="closeAndResetMonth()">🔄 Resetar Mês</button>
+      <div class="action-bar-btns">
+        <button class="btn btn-info" onclick="toggleRecurringModal()">📌 Fixos & Parcelas</button>
+        <button class="btn btn-secondary" onclick="exportToCSV()">📥 Relatório CSV</button>
       </div>
     </div>
 
-    <!-- Resumo -->
+    <!-- Resumo em Cards -->
     <div class="summary-grid">
       <div class="card">
         <h3>Receitas</h3>
@@ -502,14 +580,14 @@
         <p id="total-expense" class="text-danger">R$ 0,00</p>
       </div>
       <div class="card">
-        <h3>Saldo Atual</h3>
-        <p id="total-balance">R$ 0,00</p>
+        <h3>Saldo Final</h3>
+        <p id="total-balance" class="text-primary">R$ 0,00</p>
       </div>
     </div>
 
-    <!-- Formulário de Registro Avulso -->
+    <!-- Formulário Novo Registro -->
     <div class="card">
-      <h3 style="margin-bottom: 12px;">Novo Registro Avulso</h3>
+      <h3 style="margin-bottom: 14px;">Novo Registro Avulso</h3>
       <form id="expense-form" onsubmit="addTransaction(event)">
         <div class="form-grid">
           <div>
@@ -543,7 +621,7 @@
           </div>
           <div style="grid-column: span 2;">
             <label style="font-size: 0.8rem;">Localização GPS (Opcional)</label><br>
-            <button type="button" class="geo-btn" onclick="captureLocation()">📍 Capturar Minha Posição Atual</button>
+            <button type="button" class="geo-btn" onclick="captureLocation()">📍 Capturar Posição Atual</button>
             <span id="geo-status" style="font-size: 0.75rem; color: var(--text-muted); margin-left: 8px;"></span>
           </div>
         </div>
@@ -552,23 +630,23 @@
       </form>
     </div>
 
-    <!-- Histórico com Busca e Ordenação -->
+    <!-- Histórico -->
     <div class="card">
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
-        <h3>Histórico de Transações do Mês</h3>
-        <input type="text" id="search-input" placeholder="🔍 Pesquisar..." onkeyup="updateUI()" style="width: 100%; max-width: 280px; font-size: 0.85rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+        <h3>Histórico Mensal</h3>
+        <input type="text" id="search-input" placeholder="🔍 Pesquisar..." onkeyup="updateUI()" style="width: 100%; max-width: 220px; font-size: 0.85rem; padding: 6px 12px;">
       </div>
 
       <div class="table-container">
         <table id="transaction-table">
           <thead>
             <tr>
-              <th onclick="changeSort('date')">Data/Venc. <span class="sort-icon" id="sort-date">▲▼</span></th>
+              <th onclick="changeSort('date')">Data <span class="sort-icon" id="sort-date">▲▼</span></th>
               <th onclick="changeSort('desc')">Descrição <span class="sort-icon" id="sort-desc">▲▼</span></th>
               <th onclick="changeSort('category')">Categoria <span class="sort-icon" id="sort-category">▲▼</span></th>
               <th onclick="changeSort('amount')">Valor <span class="sort-icon" id="sort-amount">▲▼</span></th>
               <th onclick="changeSort('status')">Status <span class="sort-icon" id="sort-status">▲▼</span></th>
-              <th>Local</th>
+              <th>GPS</th>
               <th></th>
             </tr>
           </thead>
@@ -577,18 +655,17 @@
       </div>
     </div>
 
-    <!-- Dashboard: Gráfico por Categoria -->
+    <!-- Dashboard: Gráfico -->
     <div class="card">
-      <h3>Gráfico de Despesas por Categoria</h3>
+      <h3>Distribuição por Categoria</h3>
       <div class="chart-container">
         <canvas id="expenseChart"></canvas>
       </div>
     </div>
 
-    <!-- Mapa Geral de Gastos -->
+    <!-- Mapa -->
     <div class="card">
-      <h3>Mapa Geral de Gastos</h3>
-      <p style="font-size: 0.8rem; color: var(--text-muted);">Veja onde suas despesas foram registradas espacialmente.</p>
+      <h3>Mapa de Gastos</h3>
       <div id="map"></div>
     </div>
   </div>
@@ -605,7 +682,6 @@
     let currentSortColumn = 'date';
     let sortAscending = true;
 
-    // Inicialização do Mês Atual do Sistema
     function setCurrentSystemMonth() {
       const now = new Date();
       const monthFormatted = String(now.getMonth() + 1).padStart(2, '0');
@@ -616,7 +692,6 @@
       document.getElementById('rec-start-month').value = currentMonthStr;
     }
 
-    // Configuração e Escuta de Autenticação Firebase
     window.addEventListener('DOMContentLoaded', () => {
       setCurrentSystemMonth();
       initMap();
@@ -655,21 +730,20 @@
             <img src="${currentUser.photoURL}" class="user-avatar" alt="Avatar">
             <div style="flex: 1; overflow: hidden;">
               <strong style="font-size: 0.85rem; display: block; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${currentUser.displayName}</strong>
-              <small style="font-size: 0.75rem; color: var(--text-muted);">☁️ Sincronizado</small>
+              <small style="font-size: 0.75rem; color: var(--primary);">☁️ Sincronizado</small>
             </div>
           </div>
-          <button class="btn btn-danger" onclick="logoutUser()" style="width: 100%;">Sair da Conta</button>
+          <button class="btn btn-danger" onclick="logoutUser()" style="width: 100%; margin-top: 8px;">Sair da Conta</button>
         `;
       } else {
         container.innerHTML = `
-          <button class="btn btn-primary" onclick="loginWithGoogle()" style="margin-top: 0; background: #4285f4; width: 100%;">
+          <button class="btn btn-primary" onclick="loginWithGoogle()" style="margin-top: 0; background: #4285f4; color: white; width: 100%;">
             🔑 Entrar com Google
           </button>
         `;
       }
     }
 
-    // Sincronização em Tempo Real com Firestore
     function syncFromFirebase(uid) {
       const userDocRef = window.doc(window.firebaseDb, "users", uid);
       window.onSnapshot(userDocRef, (docSnap) => {
@@ -677,10 +751,10 @@
           const data = docSnap.data();
           transactions = data.transactions || [];
           recurringRules = data.recurringRules || [];
-          saveData(false); // Salva localmente sem re-enviar para evitar loop
+          saveData(false);
           updateUI();
         } else {
-          saveData(true); // Inicializa nuvem com dados atuais
+          saveData(true);
         }
       });
     }
@@ -715,24 +789,24 @@
     }
 
     function toggleTheme() {
-      const isDark = document.body.getAttribute('data-theme') === 'dark';
-      document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
-      document.querySelector('.theme-toggle').textContent = isDark ? '🌙 Modo Escuro' : '☀️ Modo Claro';
+      const isLight = document.body.getAttribute('data-theme') === 'light';
+      document.body.setAttribute('data-theme', isLight ? 'dark' : 'light');
+      document.querySelector('.theme-toggle').textContent = isLight ? '☀️ Claro' : '🌙 Escuro';
     }
 
     function captureLocation() {
       const status = document.getElementById('geo-status');
       if (!navigator.geolocation) {
-        status.textContent = "Navegador sem suporte a GPS.";
+        status.textContent = "Sem GPS.";
         return;
       }
-      status.textContent = "Obtendo localização...";
+      status.textContent = "Obtendo GPS...";
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           currentLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-          status.textContent = "📍 Localização salva!";
+          status.textContent = "📍 Posição salva!";
         },
-        () => { status.textContent = "Erro ao capturar GPS."; }
+        () => { status.textContent = "Erro de GPS."; }
       );
     }
 
@@ -742,14 +816,7 @@
 
     function openInExternalBrowser() {
       const url = window.location.href;
-      const opened = window.open(url, '_blank');
-      if (!opened || opened.closed || typeof opened.closed === 'undefined') {
-        navigator.clipboard.writeText(url).then(() => {
-          alert("Link copiado! Abra no Safari/Chrome e cole na barra de endereço.");
-        }).catch(() => {
-          alert("URL atual: " + url);
-        });
-      }
+      window.open(url, '_blank');
     }
 
     function changeSort(column) {
@@ -820,7 +887,7 @@
       document.getElementById('recurring-form').reset();
       renderRecurringRulesList();
       updateUI();
-      alert('Gasto cadastrado e projetado com sucesso!');
+      alert('Gasto agendado com sucesso!');
     }
 
     function generateRecurringTransactionsForRule(rule, monthsAhead = 24) {
@@ -865,7 +932,7 @@
     function renderRecurringRulesList() {
       const container = document.getElementById('recurring-rules-list');
       if (recurringRules.length === 0) {
-        container.innerHTML = '<p style="font-size: 0.85rem; color: var(--text-muted);">Nenhum gasto recorrente registrado.</p>';
+        container.innerHTML = '<p style="font-size: 0.85rem; color: var(--text-muted);">Nenhum gasto recorrente agendado.</p>';
         return;
       }
 
@@ -879,11 +946,11 @@
           <div>
             <strong>${rule.desc}</strong> - <span style="color:var(--danger);">${formatCurrency(rule.amount)}</span><br>
             <small style="color:var(--text-muted);">
-              Dia ${rule.day} | ${typeTxt} | Início: ${rule.startMonth}
+              Dia ${rule.day} | ${typeTxt}
             </small>
           </div>
           <button onclick="deleteRecurringRule(${rule.id})" class="btn btn-danger" style="font-size:0.75rem; padding: 6px 10px;">
-            ✕ Cancelar / Apagar
+            ✕
           </button>
         `;
         container.appendChild(div);
@@ -894,10 +961,10 @@
       const rule = recurringRules.find(r => r.id === ruleId);
       if (!rule) return;
 
-      if (confirm(`Deseja CANCELAR as parcelas pendentes de "${rule.desc}"?`)) {
+      if (confirm(`Remover os lançamentos pendentes de "${rule.desc}"?`)) {
         transactions = transactions.filter(t => !(t.ruleId === ruleId && t.status === 'pending'));
 
-        if (confirm(`Deseja remover totalmente o agendamento de "${rule.desc}"?`)) {
+        if (confirm(`Remover totalmente o agendamento de "${rule.desc}"?`)) {
           recurringRules = recurringRules.filter(r => r.id !== ruleId);
         }
 
@@ -922,23 +989,6 @@
       updateUI();
     }
 
-    function closeAndResetMonth() {
-      const selectedMonth = document.getElementById('month-picker').value;
-      const filtered = transactions.filter(t => t.month === selectedMonth);
-
-      if (filtered.length === 0) {
-        alert('Não há dados cadastrados no mês selecionado para resetar.');
-        return;
-      }
-
-      if (confirm(`Deseja baixar o relatório em CSV e fechar o mês de ${selectedMonth}? Os dados deste mês serão limpos.`)) {
-        exportToCSV();
-        transactions = transactions.filter(t => t.month !== selectedMonth);
-        saveData();
-        updateUI();
-      }
-    }
-
     function exportToCSV() {
       const selectedMonth = document.getElementById('month-picker').value;
       const filtered = transactions.filter(t => t.month === selectedMonth);
@@ -948,7 +998,7 @@
         return;
       }
 
-      let csv = '\uFEFFData/Vencimento;Descrição;Categoria;Valor;Status;Latitude;Longitude\n';
+      let csv = '\uFEFFData;Descrição;Categoria;Valor;Status;Latitude;Longitude\n';
       filtered.forEach(t => {
         const val = t.amount.toString().replace('.', ',');
         const lat = t.location ? t.location.lat : '';
@@ -960,13 +1010,13 @@
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `gerenciador_despesas_${selectedMonth}.csv`;
+      link.download = `finanzzas_${selectedMonth}.csv`;
       link.click();
     }
 
     function exportDataJSON() {
       if (transactions.length === 0 && recurringRules.length === 0) {
-        alert('Nenhum dado cadastrado para exportar.');
+        alert('Nenhum dado para exportar.');
         return;
       }
 
@@ -976,7 +1026,7 @@
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `backup_gerenciador_despesas_${new Date().toISOString().slice(0, 10)}.json`;
+      link.download = `backup_finanzzas_${new Date().toISOString().slice(0, 10)}.json`;
       link.click();
       URL.revokeObjectURL(url);
     }
@@ -986,7 +1036,7 @@
       const file = fileInput.files[0];
 
       if (!file) {
-        alert('Por favor, selecione um arquivo JSON para importar.');
+        alert('Selecione um arquivo JSON.');
         return;
       }
 
@@ -994,7 +1044,7 @@
       reader.onload = function(e) {
         try {
           const imported = JSON.parse(e.target.result);
-          const replace = confirm('Deseja SUBSTITUIR os registros atuais?\n\nOK = Substituir\nCancelar = Mesclar dados');
+          const replace = confirm('Substituir registros atuais?\n\nOK = Substituir\nCancelar = Mesclar');
 
           if (replace) {
             transactions = imported.transactions || [];
@@ -1010,7 +1060,7 @@
           alert('Dados importados com sucesso!');
           fileInput.value = '';
         } catch (err) {
-          alert('Erro ao processar o arquivo JSON: ' + err.message);
+          alert('Erro ao importar JSON: ' + err.message);
         }
       };
 
@@ -1021,7 +1071,7 @@
       if (!mapInstance) {
         mapInstance = L.map('map').setView([-14.235, -51.925], 4);
         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-          attribution: 'Tiles &copy; Esri',
+          attribution: 'Esri',
           maxZoom: 18
         }).addTo(mapInstance);
       }
@@ -1082,7 +1132,7 @@
         const isPaid = t.status === 'paid';
         const badgeClass = isPaid ? 'badge-paid' : 'badge-pending';
         const badgeText = isPaid ? 'Pago ✅' : 'Pendente ⏳';
-        const recurringTag = t.ruleId ? '<span class="badge-recurring">🔄 Fixo/Parcelado</span>' : '';
+        const recurringTag = t.ruleId ? '<span class="badge-recurring">🔄 Fixo/Parc</span>' : '';
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -1091,8 +1141,8 @@
           <td>${t.category}</td>
           <td class="${t.amount < 0 ? 'text-danger' : 'text-success'}">${formatCurrency(t.amount)}</td>
           <td><span class="badge ${badgeClass}" onclick="toggleStatus(${t.id})">${badgeText}</span></td>
-          <td>${t.location ? '📍 Sim' : '-'}</td>
-          <td><button onclick="deleteTransaction(${t.id})" style="background:none;border:none;color:red;cursor:pointer;">✕</button></td>
+          <td>${t.location ? '📍' : '-'}</td>
+          <td><button onclick="deleteTransaction(${t.id})" style="background:none;border:none;color:var(--danger);cursor:pointer;font-weight:bold;">✕</button></td>
         `;
         tbody.appendChild(tr);
 
@@ -1121,15 +1171,18 @@
       chartInstance = new Chart(ctx, {
         type: 'doughnut',
         data: {
-          labels: labels.length ? labels : ['Sem dados'],
+          labels: labels.length ? labels : ['Sem despesas'],
           datasets: [{
             data: data.length ? data : [1],
-            backgroundColor: ['#ef4444', '#3b82f6', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899']
+            backgroundColor: ['#ef4444', '#00ffea', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899']
           }]
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' }
+          }
         }
       });
     }
