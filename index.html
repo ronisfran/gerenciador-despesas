@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Finanzzas v5.0 - Gerenciador Financeiro</title>
+  <title>Finanzzas v6.0 - Gerenciador Financeiro</title>
 
   <!-- Conexão PWA Manifest & Ícones -->
   <link rel="manifest" href="manifest.json">
@@ -378,6 +378,85 @@
       box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
     }
 
+    /* Estilização Redesenhada do Menu Lateral (Sidebar) */
+    .sidebar-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(6px);
+      z-index: 998;
+      display: none;
+    }
+    .sidebar {
+      position: fixed;
+      top: 0; left: -320px;
+      width: 310px;
+      height: 100%;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      z-index: 999;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow-y: auto;
+    }
+    .sidebar.open { left: 0; }
+    .sidebar-overlay.open { display: block; }
+
+    .sidebar-section {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .sidebar-section-title {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Custom File Input Styling */
+    .custom-file-wrapper {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+    }
+
+    .custom-file-input {
+      display: none;
+    }
+
+    .custom-file-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: var(--card-bg);
+      border: 1px dashed var(--border);
+      color: var(--text-muted);
+      padding: 10px;
+      border-radius: var(--radius);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .custom-file-label:hover {
+      border-color: var(--primary);
+      color: var(--text);
+    }
+
+    /* Modais */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -415,31 +494,6 @@
       border-bottom: 1px solid var(--border);
       margin-bottom: 16px;
     }
-
-    .sidebar-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(6px);
-      z-index: 998;
-      display: none;
-    }
-    .sidebar {
-      position: fixed;
-      top: 0; left: -320px;
-      width: 300px;
-      height: 100%;
-      background: var(--sidebar-bg);
-      border-right: 1px solid var(--border);
-      z-index: 999;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .sidebar.open { left: 0; }
-    .sidebar-overlay.open { display: block; }
 
     input, select {
       padding: 10px 14px;
@@ -513,7 +567,7 @@
     <!-- Overlay Sidebar -->
     <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
 
-    <!-- Aba Lateral (Sidebar) -->
+    <!-- Aba Lateral (Sidebar Redesenhada) -->
     <div class="sidebar" id="sidebar">
       <div>
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 14px;">
@@ -524,24 +578,48 @@
           <button class="close-circle-btn" onclick="toggleSidebar()">✕</button>
         </div>
 
-        <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 12px;">
-          <h4 style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">☁️ Sua Conta</h4>
+        <!-- Seção 1: Perfil do Usuário -->
+        <div class="sidebar-section">
+          <span class="sidebar-section-title">☁️ Sua Conta</span>
           <div id="auth-status-container"></div>
         </div>
 
-        <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 12px;">
-          <h4 style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Backup em Arquivo</h4>
-          <button class="btn btn-info" style="width: 100%;" onclick="exportDataJSON()">📤 Exportar JSON</button>
-          <div style="margin-top: 10px;">
-            <input type="file" id="import-file" accept=".json" style="width: 100%; font-size: 0.8rem;">
-            <button class="btn btn-secondary" onclick="importDataJSON()" style="width: 100%; margin-top: 6px;">
+        <!-- Seção 2: Configurações do App -->
+        <div class="sidebar-section">
+          <span class="sidebar-section-title">⚙️ Configurações</span>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.85rem;">Aparência:</span>
+            <select id="theme-selector" onchange="setTheme(this.value)" style="font-size: 0.8rem; padding: 6px 10px;">
+              <option value="dark">🌙 Escuro</option>
+              <option value="light">☀️ Claro</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Seção 3: Backup & Dados Redesenhados -->
+        <div class="sidebar-section">
+          <span class="sidebar-section-title">💾 Backup de Dados</span>
+          
+          <button class="btn btn-info" style="width: 100%; border-radius: var(--radius); padding: 10px;" onclick="exportDataJSON()">
+            📤 Exportar JSON
+          </button>
+
+          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+            <div class="custom-file-wrapper">
+              <input type="file" id="import-file" class="custom-file-input" accept=".json" onchange="handleFileSelect(this)">
+              <label for="import-file" class="custom-file-label" id="file-label">
+                📂 Escolher arquivo JSON
+              </label>
+            </div>
+            
+            <button class="btn btn-secondary" onclick="importDataJSON()" style="width: 100%; border-radius: var(--radius); padding: 10px;">
               📥 Importar Backup
             </button>
           </div>
         </div>
       </div>
 
-      <div style="border-top: 1px solid var(--border); padding-top: 16px;">
+      <div style="border-top: 1px solid var(--border); padding-top: 16px; margin-top: 20px;">
         <button class="btn btn-primary" onclick="openInExternalBrowser()" style="width: 100%; margin-top: 0; background: var(--card-bg); color: var(--text); border: 1px solid var(--border);">
           🌐 Abrir no Navegador
         </button>
@@ -668,7 +746,7 @@
       </div>
     </div>
 
-    <!-- Header Principal -->
+    <!-- Header Principal (Limpo) -->
     <header>
       <div class="header-left">
         <button class="menu-btn" onclick="toggleSidebar()">☰</button>
@@ -677,7 +755,6 @@
       </div>
       <div class="header-right-actions">
         <button class="icon-btn" onclick="togglePrivacy()" id="privacy-btn" title="Ocultar/Mostrar Saldos">👁️</button>
-        <button class="theme-toggle" onclick="toggleTheme()">☀️ Claro</button>
       </div>
     </header>
 
@@ -789,9 +866,8 @@
       </div>
     </div>
 
-    <!-- TELA 2: ANÁLISE (FILTROS & GRÁFICOS AVANÇADOS) -->
+    <!-- TELA 2: ANÁLISE -->
     <div id="tab-analytics" class="tab-view hidden">
-      <!-- Filtros Avançados -->
       <div class="card">
         <h3 style="margin-bottom: 10px;">🔍 Filtros da Análise</h3>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
@@ -826,7 +902,6 @@
         </div>
       </div>
 
-      <!-- Diagnóstico do App -->
       <div class="card">
         <h3 style="color: var(--primary);">💡 Diagnóstico Financeiro Inteligente</h3>
         <div class="feedback-box" id="feedback-container">
@@ -834,7 +909,6 @@
         </div>
       </div>
 
-      <!-- KPIs da Saúde Financeira -->
       <div class="card">
         <h3>Métricas da Saúde Financeira</h3>
         <div class="kpi-grid" style="margin-top: 10px;">
@@ -853,7 +927,6 @@
         </div>
       </div>
 
-      <!-- Evolução Semestral (Comparativo de 6 Meses) -->
       <div class="card">
         <h3>Evolução Patrimonial (Últimos 6 Meses)</h3>
         <div class="chart-container" style="height: 260px;">
@@ -861,7 +934,6 @@
         </div>
       </div>
 
-      <!-- Gráfico de Rosca -->
       <div class="card">
         <h3>Distribuição por Categoria</h3>
         <div class="chart-container">
@@ -869,7 +941,6 @@
         </div>
       </div>
 
-      <!-- Mapa de Gastos -->
       <div class="card">
         <h3>Mapa de Gastos</h3>
         <div id="map"></div>
@@ -877,7 +948,7 @@
     </div>
   </div>
 
-  <!-- Dock Flutuante no Rodapé com Botão Central "+" -->
+  <!-- Dock Flutuante com Botão "+" -->
   <div id="bottom-dock-container" class="bottom-dock-overlay hidden">
     <div class="bottom-dock">
       <button class="dock-btn active" id="dock-home" onclick="switchTab('home')">
@@ -897,6 +968,7 @@
     let recurringRules = [];
     let currentViewMode = localStorage.getItem('viewMode') || 'tiles';
     let hideValues = localStorage.getItem('hideValues') === 'true';
+    let currentTheme = localStorage.getItem('appTheme') || 'dark';
     let currentUser = null;
     let currentLocation = null;
     let chartInstance = null;
@@ -922,6 +994,7 @@
       setCurrentSystemMonth();
       setViewMode(currentViewMode);
       updatePrivacyUI();
+      setTheme(currentTheme);
 
       const checkFirebaseInterval = setInterval(() => {
         if (window.firebaseAuth) {
@@ -946,6 +1019,13 @@
       }, 200);
     });
 
+    function setTheme(theme) {
+      currentTheme = theme;
+      localStorage.setItem('appTheme', theme);
+      document.body.setAttribute('data-theme', theme);
+      document.getElementById('theme-selector').value = theme;
+    }
+
     function togglePrivacy() {
       hideValues = !hideValues;
       localStorage.setItem('hideValues', hideValues);
@@ -955,6 +1035,17 @@
 
     function updatePrivacyUI() {
       document.getElementById('privacy-btn').textContent = hideValues ? '🙈' : '👁️';
+    }
+
+    function handleFileSelect(input) {
+      const label = document.getElementById('file-label');
+      if (input.files && input.files[0]) {
+        label.textContent = `📄 ${input.files[0].name}`;
+        label.style.borderColor = 'var(--primary)';
+        label.style.color = 'var(--primary)';
+      } else {
+        label.textContent = '📂 Escolher arquivo JSON';
+      }
     }
 
     function formatCurrency(val) {
@@ -1107,14 +1198,14 @@
       const container = document.getElementById('auth-status-container');
       if (currentUser) {
         container.innerHTML = `
-          <div style="background: var(--bg); border: 1px solid var(--border); padding: 12px; border-radius: var(--radius); display: flex; align-items: center; gap: 12px;">
-            <img src="${currentUser.photoURL}" style="width: 40px; height: 40px; border-radius: 50%;" alt="Avatar">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <img src="${currentUser.photoURL}" style="width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--primary);" alt="Avatar">
             <div style="flex: 1; overflow: hidden;">
               <strong style="font-size: 0.85rem; display: block; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${currentUser.displayName}</strong>
-              <small style="font-size: 0.75rem; color: var(--primary);">☁️ Conta Conectada</small>
+              <small style="font-size: 0.72rem; color: var(--primary);">☁️ Conta Conectada</small>
             </div>
           </div>
-          <button class="btn btn-danger" onclick="logoutUser()" style="width: 100%; margin-top: 8px;">🔒 Sair da Conta</button>
+          <button class="btn btn-danger" onclick="logoutUser()" style="width: 100%; margin-top: 6px; padding: 8px; font-size: 0.8rem;">🔒 Sair da Conta</button>
         `;
       }
     }
@@ -1161,12 +1252,6 @@
     function toggleInstallmentsField() {
       const recType = document.getElementById('rec-type').value;
       document.getElementById('installments-box').style.display = recType === 'installment' ? 'block' : 'none';
-    }
-
-    function toggleTheme() {
-      const isLight = document.body.getAttribute('data-theme') === 'light';
-      document.body.setAttribute('data-theme', isLight ? 'dark' : 'light');
-      document.querySelector('.theme-toggle').textContent = isLight ? '☀️ Claro' : '🌙 Escuro';
     }
 
     function captureLocation() {
@@ -1377,6 +1462,7 @@
           }
           saveData(); updateUI(); toggleSidebar(); alert('Dados importados com sucesso!');
           fileInput.value = '';
+          document.getElementById('file-label').textContent = '📂 Escolher arquivo JSON';
         } catch (err) { alert('Erro ao importar JSON: ' + err.message); }
       };
       reader.readAsText(file);
@@ -1397,7 +1483,6 @@
       const selectedMonth = document.getElementById('month-picker').value;
       const searchTerm = (document.getElementById('search-input').value || '').toLowerCase();
 
-      // Filtros Avançados (Aba Análise)
       const filterCat = document.getElementById('filter-category').value;
       const filterType = document.getElementById('filter-type').value;
       const filterStatus = document.getElementById('filter-status').value;
@@ -1582,8 +1667,6 @@
 
     function updateTrendChart() {
       const ctx = document.getElementById('trendChart').getContext('2d');
-      
-      // Gera os últimos 6 meses
       const months = [];
       const now = new Date();
       for (let i = 5; i >= 0; i--) {
