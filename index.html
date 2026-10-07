@@ -332,20 +332,23 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      overflow: hidden;
-      box-sizing: border-box;
       width: 100%;
+      box-sizing: border-box;
     }
 
     .feedback-item {
       font-size: 0.88rem;
-      line-height: 1.45;
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      word-break: break-word;
-      overflow-wrap: anywhere;
+      line-height: 1.5;
+      color: var(--text);
+      word-break: normal;
+      overflow-wrap: break-word;
       white-space: normal;
+      display: block;
+      width: 100%;
+    }
+
+    .feedback-item strong {
+      color: var(--primary);
     }
 
     .badge {
@@ -1729,7 +1732,6 @@
         item.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         feedbackBox.appendChild(item);
       });
-    }
 
     function updateChart(categoryTotals) {
       const ctx = document.getElementById('expenseChart').getContext('2d');
