@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Finanzzas - Gerenciador Financeiro</title>
+  <title>Finanzzas v3.0 - Gerenciador Financeiro</title>
 
   <!-- Conexão PWA Manifest & Ícones -->
   <link rel="manifest" href="manifest.json">
@@ -100,7 +100,7 @@
     body {
       background-color: var(--bg);
       color: var(--text);
-      padding: 12px;
+      padding: 12px 12px 90px 12px;
       display: flex;
       justify-content: center;
       transition: background-color 0.3s, color 0.3s;
@@ -163,43 +163,163 @@
       font-size: 0.85rem;
     }
 
-    /* Aba Lateral (Drawer) */
-    .sidebar-overlay {
+    /* Navegação Flutuante no Rodapé (Floating Bottom Dock) */
+    .bottom-dock-overlay {
       position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(6px);
-      z-index: 998;
-      display: none;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 85px;
+      background: linear-gradient(to top, var(--bg) 65%, transparent);
+      pointer-events: none;
+      z-index: 900;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      padding-bottom: 16px;
     }
 
-    .sidebar {
-      position: fixed;
-      top: 0; left: -320px;
-      width: 300px;
-      height: 100%;
-      background: var(--sidebar-bg);
-      border-right: 1px solid var(--border);
-      z-index: 999;
-      padding: 24px;
+    .bottom-dock {
+      pointer-events: auto;
+      background: rgba(30, 41, 59, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 6px 12px;
+      display: flex;
+      gap: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .dock-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .dock-btn.active {
+      background: var(--primary);
+      color: var(--primary-text);
+      box-shadow: 0 0 12px rgba(0, 255, 234, 0.4);
+    }
+
+    /* Alternância de Visões/Telas */
+    .tab-view {
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 4px 0 24px rgba(0,0,0,0.3);
+      gap: 16px;
+      animation: fadeIn 0.25s ease-in-out;
     }
 
-    .sidebar.open { left: 0; }
-    .sidebar-overlay.open { display: block; }
+    .tab-view.hidden { display: none; }
 
-    .sidebar-header {
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cards e Métricas */
+    .card {
+      background: var(--card-bg);
+      padding: 18px;
+      border-radius: var(--radius);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      border: 1px solid var(--border);
+    }
+
+    .card h3 { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .card p { font-size: 1.3rem; font-weight: 800; }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+
+    .kpi-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 14px;
+      border-radius: var(--radius);
+    }
+
+    .feedback-box {
+      background: rgba(0, 255, 234, 0.05);
+      border: 1px solid rgba(0, 255, 234, 0.2);
+      border-radius: var(--radius);
+      padding: 14px;
+      margin-top: 10px;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 14px;
+      flex-direction: column;
+      gap: 8px;
     }
 
+    .feedback-item {
+      font-size: 0.88rem;
+      line-height: 1.4;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    /* Badges & Botões */
+    .badge {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-block;
+    }
+    .badge-paid { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-pending { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-recurring { background: rgba(0, 255, 234, 0.15); color: var(--primary); border: 1px solid rgba(0, 255, 234, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; margin-left: 4px; }
+
+    .text-success { color: var(--success); }
+    .text-danger { color: var(--danger); }
+    .text-primary { color: var(--primary); }
+
+    .btn {
+      cursor: pointer;
+      font-weight: 700;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.98); }
+
+    .btn-primary { 
+      background: var(--primary); 
+      color: var(--primary-text); 
+      width: 100%; 
+      margin-top: 10px; 
+      padding: 12px; 
+      border-radius: var(--radius);
+    }
+
+    .btn-secondary { background: #059669; color: white; border-radius: var(--radius); }
+    .btn-info { background: #3b82f6; color: white; border-radius: var(--radius); }
+    .btn-danger { background: var(--danger); color: white; border-radius: var(--radius); }
+
+    /* Modais */
     .close-circle-btn {
       background: #ef4444;
       border: none;
@@ -216,36 +336,6 @@
       box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
     }
 
-    .sidebar-section {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .sidebar-section h4 {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .user-card {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      padding: 12px;
-      border-radius: var(--radius);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .user-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-    }
-
-    /* Modais Flutuantes */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -257,7 +347,6 @@
       align-items: center;
       padding: 16px;
     }
-
     .modal-overlay.open { display: flex; }
 
     .modal {
@@ -270,7 +359,6 @@
       max-height: 85vh;
       overflow-y: auto;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-      position: relative;
     }
 
     .modal-header-sticky {
@@ -286,43 +374,34 @@
       margin-bottom: 16px;
     }
 
-    /* Cards e Layout */
-    .card {
-      background: var(--card-bg);
-      padding: 18px;
-      border-radius: var(--radius);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      border: 1px solid var(--border);
+    /* Aba Lateral */
+    .sidebar-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(6px);
+      z-index: 998;
+      display: none;
     }
-
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 10px;
-    }
-
-    .card h3 { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-    .card p { font-size: 1.3rem; font-weight: 800; }
-
-    .text-success { color: var(--success); }
-    .text-danger { color: var(--danger); }
-    .text-primary { color: var(--primary); }
-
-    .action-bar {
+    .sidebar {
+      position: fixed;
+      top: 0; left: -320px;
+      width: 300px;
+      height: 100%;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      z-index: 999;
+      padding: 24px;
       display: flex;
+      flex-direction: column;
       justify-content: space-between;
-      align-items: center;
-      gap: 12px;
+      transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
+    .sidebar.open { left: 0; }
+    .sidebar-overlay.open { display: block; }
 
-    .month-select-container {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      width: 100%;
-    }
-
-    input, select, button {
+    /* Inputs e Form */
+    input, select {
       padding: 10px 14px;
       border-radius: var(--radius);
       border: 1px solid var(--border);
@@ -331,194 +410,41 @@
       font-size: 0.95rem;
       outline: none;
     }
-
-    input:focus, select:focus {
-      border-color: var(--primary);
-    }
-
-    .btn {
-      cursor: pointer;
-      font-weight: 700;
-      border: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      transition: opacity 0.2s, transform 0.1s;
-    }
-
-    .btn:active { transform: scale(0.98); }
-
-    .btn-primary { 
-      background: var(--primary); 
-      color: var(--primary-text); 
-      width: 100%; 
-      margin-top: 10px; 
-      padding: 12px; 
-    }
-    
-    .btn-secondary { background: #059669; color: white; }
-    .btn-info { background: #3b82f6; color: white; }
-    .btn-danger { background: var(--danger); color: white; }
+    input:focus, select:focus { border-color: var(--primary); }
 
     .form-grid {
       display: grid;
       grid-template-columns: 1fr;
       gap: 12px;
     }
-
     @media (min-width: 600px) {
       .form-grid { grid-template-columns: 2fr 1fr 1fr; }
     }
 
-    .action-sub-row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 6px;
-    }
+    .action-sub-row { display: flex; gap: 8px; margin-top: 6px; }
+    .geo-btn { background: #8b5cf6; color: white; border: none; font-size: 0.85rem; padding: 8px 12px; border-radius: var(--radius); cursor: pointer; flex: 1; }
+    .recurring-trigger-btn { background: #3b82f6; color: white; border: none; font-size: 0.85rem; padding: 8px 12px; border-radius: var(--radius); cursor: pointer; flex: 1; }
 
-    .geo-btn {
-      background: #8b5cf6;
-      color: white;
-      font-size: 0.85rem;
-      padding: 8px 12px;
-      border-radius: var(--radius);
-      cursor: pointer;
-      border: none;
-      flex: 1;
-    }
+    /* Tiles & Tabela */
+    .view-toggle-btns { display: flex; gap: 4px; background: var(--input-bg); padding: 3px; border-radius: var(--radius); border: 1px solid var(--border); }
+    .view-btn { padding: 6px 10px; font-size: 0.8rem; border: none; background: transparent; color: var(--text-muted); border-radius: 8px; cursor: pointer; }
+    .view-btn.active { background: var(--card-bg); color: var(--primary); font-weight: 700; }
 
-    .recurring-trigger-btn {
-      background: #3b82f6;
-      color: white;
-      font-size: 0.85rem;
-      padding: 8px 12px;
-      border-radius: var(--radius);
-      cursor: pointer;
-      border: none;
-      flex: 1;
-    }
+    .tiles-container { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+    .tile-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+    .tile-left { display: flex; flex-direction: column; gap: 2px; }
+    .tile-title { font-weight: 700; font-size: 0.9rem; }
+    .tile-sub { font-size: 0.75rem; color: var(--text-muted); }
+    .tile-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+    .tile-amount { font-weight: 800; font-size: 0.95rem; }
 
-    /* Badges */
-    .badge {
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      cursor: pointer;
-      display: inline-block;
-    }
-    .badge-paid { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
-    .badge-pending { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
-    .badge-recurring { background: rgba(0, 255, 234, 0.15); color: var(--primary); border: 1px solid rgba(0, 255, 234, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; margin-left: 4px; }
-
-    /* Alternância de Exibição (Tiles vs Tabela) */
-    .view-toggle-btns {
-      display: flex;
-      gap: 4px;
-      background: var(--input-bg);
-      padding: 3px;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-    }
-
-    .view-btn {
-      padding: 6px 10px;
-      font-size: 0.8rem;
-      border: none;
-      background: transparent;
-      color: var(--text-muted);
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    .view-btn.active {
-      background: var(--card-bg);
-      color: var(--primary);
-      font-weight: 700;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-    }
-
-    /* Tiles (Cards de Transação) */
-    .tiles-container {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 12px;
-    }
-
-    .tile-card {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      cursor: pointer;
-      transition: transform 0.1s, border-color 0.2s;
-    }
-
-    .tile-card:active { transform: scale(0.99); }
-
-    .tile-left {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      overflow: hidden;
-    }
-
-    .tile-title {
-      font-weight: 700;
-      font-size: 0.9rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .tile-sub {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
-
-    .tile-right {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 4px;
-      flex-shrink: 0;
-    }
-
-    .tile-amount {
-      font-weight: 800;
-      font-size: 0.95rem;
-    }
-
-    /* Tabela */
     .table-container { overflow-x: auto; margin-top: 10px; }
     table { width: 100%; border-collapse: collapse; text-align: left; }
     th, td { padding: 12px 10px; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
-    th { background: var(--bg); color: var(--text-muted); cursor: pointer; user-select: none; font-weight: 600; }
+    th { background: var(--bg); color: var(--text-muted); cursor: pointer; }
 
-    .rule-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      margin-bottom: 8px;
-      background: var(--bg);
-    }
-
-    #map { height: 260px; width: 100%; border-radius: var(--radius); margin-top: 10px; z-index: 1; }
+    #map { height: 240px; width: 100%; border-radius: var(--radius); margin-top: 10px; z-index: 1; }
     .chart-container { position: relative; height: 240px; width: 100%; }
-
-    @media (max-width: 600px) {
-      body { padding: 8px; }
-    }
   </style>
 </head>
 <body>
@@ -529,7 +455,7 @@
   <!-- Aba Lateral -->
   <div class="sidebar" id="sidebar">
     <div>
-      <div class="sidebar-header">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 14px;">
         <div style="display: flex; align-items: center; gap: 8px;">
           <img src="icon-192.png" class="brand-logo" alt="Logo">
           <h3 style="color: var(--primary);">Finanzzas</h3>
@@ -537,8 +463,8 @@
         <button class="close-circle-btn" onclick="toggleSidebar()">✕</button>
       </div>
 
-      <div class="sidebar-section" style="margin-top: 20px;">
-        <h4>☁️ Sincronização em Nuvem</h4>
+      <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 12px;">
+        <h4 style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">☁️ Sincronização em Nuvem</h4>
         <div id="auth-status-container">
           <button class="btn btn-primary" id="login-btn" onclick="loginWithGoogle()" style="margin-top: 0; background: #4285f4; color: white;">
             🔑 Entrar com Google
@@ -546,10 +472,9 @@
         </div>
       </div>
 
-      <div class="sidebar-section" style="margin-top: 24px;">
-        <h4>Backup em Arquivo</h4>
+      <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 12px;">
+        <h4 style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Backup em Arquivo</h4>
         <button class="btn btn-info" style="width: 100%;" onclick="exportDataJSON()">📤 Exportar JSON</button>
-        
         <div style="margin-top: 10px;">
           <input type="file" id="import-file" accept=".json" style="width: 100%; font-size: 0.8rem;">
           <button class="btn btn-secondary" onclick="importDataJSON()" style="width: 100%; margin-top: 6px;">
@@ -566,7 +491,7 @@
     </div>
   </div>
 
-  <!-- Modal de Detalhes da Transação -->
+  <!-- Modal Detalhes -->
   <div class="modal-overlay" id="detail-modal">
     <div class="modal">
       <div class="modal-header-sticky">
@@ -577,7 +502,7 @@
     </div>
   </div>
 
-  <!-- Modal de Gastos Fixos & Parcelados -->
+  <!-- Modal Fixos & Parcelas -->
   <div class="modal-overlay" id="recurring-modal">
     <div class="modal">
       <div class="modal-header-sticky">
@@ -591,7 +516,7 @@
         <div style="display: flex; flex-direction: column; gap: 12px;">
           <div>
             <label style="font-size: 0.8rem; font-weight: 600;">Descrição</label>
-            <input type="text" id="rec-desc" placeholder="Ex: Aluguel, Financiamento, Sapato" required style="width: 100%;">
+            <input type="text" id="rec-desc" placeholder="Ex: Aluguel, Financiamento" required style="width: 100%;">
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -637,15 +562,13 @@
             </div>
           </div>
 
-          <button type="submit" class="btn btn-primary" style="margin-top: 6px; width: 100%;">Agendar Projeção</button>
+          <button type="submit" class="btn btn-primary" style="margin-top: 6px;">Agendar Projeção</button>
         </div>
       </form>
 
       <div>
         <h4 style="font-size: 0.85rem; margin-bottom: 10px; color: var(--text-muted); text-transform: uppercase;">📋 Agendamentos Ativos</h4>
-        <div id="recurring-rules-list">
-          <p style="font-size: 0.85rem; color: var(--text-muted);">Nenhum gasto recorrente projetado.</p>
-        </div>
+        <div id="recurring-rules-list"></div>
       </div>
     </div>
   </div>
@@ -660,131 +583,175 @@
       <button class="theme-toggle" onclick="toggleTheme()">☀️ Claro</button>
     </header>
 
-    <!-- Barra de Mês e Exportação Simplificada -->
-    <div class="card action-bar">
-      <div class="month-select-container">
+    <!-- Barra de Mês e Exportação CSV -->
+    <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+      <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
         <label for="month-picker" style="font-size: 0.85rem; font-weight: 600;">Mês:</label>
         <input type="month" id="month-picker" onchange="updateUI()" style="flex: 1;">
-        <button class="btn btn-secondary" onclick="exportToCSV()" title="Exportar CSV" style="padding: 10px 12px; font-size: 0.85rem;">
+        <button class="btn btn-secondary" onclick="exportToCSV()" style="padding: 10px 12px; font-size: 0.85rem;">
           📥 .CSV
         </button>
       </div>
     </div>
 
-    <!-- Resumo em Cards -->
-    <div class="summary-grid">
-      <div class="card">
-        <h3>Receitas</h3>
-        <p id="total-income" class="text-success">R$ 0,00</p>
-      </div>
-      <div class="card">
-        <h3>Despesas</h3>
-        <p id="total-expense" class="text-danger">R$ 0,00</p>
-      </div>
-      <div class="card">
-        <h3>Saldo Final</h3>
-        <p id="total-balance" class="text-primary">R$ 0,00</p>
-      </div>
-    </div>
-
-    <!-- Formulário Novo Registro -->
-    <div class="card">
-      <h3 style="margin-bottom: 14px;">Novo Registro Avulso</h3>
-      <form id="expense-form" onsubmit="addTransaction(event)">
-        <div class="form-grid">
-          <div>
-            <label style="font-size: 0.8rem;">Descrição</label>
-            <input type="text" id="desc" placeholder="Ex: Mercado, Combustível" required style="width: 100%;">
-          </div>
-          <div>
-            <label style="font-size: 0.8rem;">Valor (R$)</label>
-            <input type="number" step="0.01" id="amount" placeholder="0,00" required style="width: 100%;">
-          </div>
-          <div>
-            <label style="font-size: 0.8rem;">Tipo</label>
-            <select id="type" style="width: 100%;">
-              <option value="expense">Despesa 🔴</option>
-              <option value="income">Receita 🟢</option>
-            </select>
-          </div>
+    <!-- =================================================================== -->
+    <!-- TELA 1: INÍCIO (REGISTROS & HISTÓRICO) -->
+    <!-- =================================================================== -->
+    <div id="tab-home" class="tab-view">
+      <!-- Resumo em Cards -->
+      <div class="summary-grid">
+        <div class="card">
+          <h3>Receitas</h3>
+          <p id="total-income" class="text-success">R$ 0,00</p>
         </div>
+        <div class="card">
+          <h3>Despesas</h3>
+          <p id="total-expense" class="text-danger">R$ 0,00</p>
+        </div>
+        <div class="card">
+          <h3>Saldo Final</h3>
+          <p id="total-balance" class="text-primary">R$ 0,00</p>
+        </div>
+      </div>
 
-        <div class="form-grid" style="margin-top: 10px;">
-          <div>
-            <label style="font-size: 0.8rem;">Categoria</label>
-            <select id="category" style="width: 100%;">
-              <option value="Alimentação">Alimentação</option>
-              <option value="Transporte">Transporte</option>
-              <option value="Moradia">Moradia</option>
-              <option value="Lazer">Lazer</option>
-              <option value="Trabalho">Trabalho</option>
-              <option value="Outros">Outros</option>
-            </select>
-          </div>
-          <div style="grid-column: span 2;">
-            <label style="font-size: 0.8rem;">Ações Adicionais</label>
-            <div class="action-sub-row">
-              <button type="button" class="geo-btn" onclick="captureLocation()">📍 GPS Atual</button>
-              <button type="button" class="recurring-trigger-btn" onclick="toggleRecurringModal()">📌 Fixos & Parcelas</button>
+      <!-- Formulário Novo Registro -->
+      <div class="card">
+        <h3 style="margin-bottom: 14px;">Novo Registro Avulso</h3>
+        <form id="expense-form" onsubmit="addTransaction(event)">
+          <div class="form-grid">
+            <div>
+              <label style="font-size: 0.8rem;">Descrição</label>
+              <input type="text" id="desc" placeholder="Ex: Mercado, Combustível" required style="width: 100%;">
             </div>
-            <span id="geo-status" style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 4px;"></span>
+            <div>
+              <label style="font-size: 0.8rem;">Valor (R$)</label>
+              <input type="number" step="0.01" id="amount" placeholder="0,00" required style="width: 100%;">
+            </div>
+            <div>
+              <label style="font-size: 0.8rem;">Tipo</label>
+              <select id="type" style="width: 100%;">
+                <option value="expense">Despesa 🔴</option>
+                <option value="income">Receita 🟢</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid" style="margin-top: 10px;">
+            <div>
+              <label style="font-size: 0.8rem;">Categoria</label>
+              <select id="category" style="width: 100%;">
+                <option value="Alimentação">Alimentação</option>
+                <option value="Transporte">Transporte</option>
+                <option value="Moradia">Moradia</option>
+                <option value="Lazer">Lazer</option>
+                <option value="Trabalho">Trabalho</option>
+                <option value="Outros">Outros</option>
+              </select>
+            </div>
+            <div style="grid-column: span 2;">
+              <label style="font-size: 0.8rem;">Ações Adicionais</label>
+              <div class="action-sub-row">
+                <button type="button" class="geo-btn" onclick="captureLocation()">📍 GPS Atual</button>
+                <button type="button" class="recurring-trigger-btn" onclick="toggleRecurringModal()">📌 Fixos & Parcelas</button>
+              </div>
+              <span id="geo-status" style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 4px;"></span>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Adicionar Transação</button>
+        </form>
+      </div>
+
+      <!-- Histórico Mensal -->
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+          <h3>Histórico Mensal</h3>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="view-toggle-btns">
+              <button class="view-btn active" id="btn-view-tiles" onclick="setViewMode('tiles')">🎴 Cards</button>
+              <button class="view-btn" id="btn-view-table" onclick="setViewMode('table')">📊 Tabela</button>
+            </div>
+            <input type="text" id="search-input" placeholder="🔍 Buscar..." onkeyup="updateUI()" style="width: 110px; font-size: 0.85rem; padding: 6px 10px;">
           </div>
         </div>
 
-        <button type="submit" class="btn btn-primary">Adicionar Transação</button>
-      </form>
+        <div id="tiles-wrapper" class="tiles-container"></div>
+
+        <div id="table-wrapper" class="table-container" style="display: none;">
+          <table id="transaction-table">
+            <thead>
+              <tr>
+                <th onclick="changeSort('date')">Data</th>
+                <th onclick="changeSort('desc')">Descrição</th>
+                <th onclick="changeSort('category')">Categoria</th>
+                <th onclick="changeSort('amount')">Valor</th>
+                <th onclick="changeSort('status')">Status</th>
+                <th>GPS</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="transaction-list"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
-    <!-- Histórico com Alternância (Tiles vs Tabela) -->
-    <div class="card">
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
-        <h3>Histórico Mensal</h3>
-
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <!-- Alternador de Visão -->
-          <div class="view-toggle-btns">
-            <button class="view-btn active" id="btn-view-tiles" onclick="setViewMode('tiles')">🎴 Cards</button>
-            <button class="view-btn" id="btn-view-table" onclick="setViewMode('table')">📊 Tabela</button>
-          </div>
-
-          <input type="text" id="search-input" placeholder="🔍 Buscar..." onkeyup="updateUI()" style="width: 110px; font-size: 0.85rem; padding: 6px 10px;">
+    <!-- =================================================================== -->
+    <!-- TELA 2: ANÁLISE INTELIGENTE & METRICAS -->
+    <!-- =================================================================== -->
+    <div id="tab-analytics" class="tab-view hidden">
+      <!-- Diagnóstico do App (Feedback Inteligente) -->
+      <div class="card">
+        <h3 style="color: var(--primary);">💡 Diagnóstico Financeiro Inteligente</h3>
+        <div class="feedback-box" id="feedback-container">
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Analisando seus hábitos deste mês...</p>
         </div>
       </div>
 
-      <!-- Exibição 1: Tiles (Cards por Linha) -->
-      <div id="tiles-wrapper" class="tiles-container"></div>
+      <!-- KPIs da Saúde Financeira -->
+      <div class="card">
+        <h3>Métricas da Saúde Financeira</h3>
+        <div class="kpi-grid" style="margin-top: 10px;">
+          <div class="kpi-card">
+            <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Taxa de Poupança</span>
+            <p id="kpi-savings-rate" class="text-primary" style="font-size: 1.4rem; margin-top: 4px;">0%</p>
+          </div>
+          <div class="kpi-card">
+            <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Média Diária de Gastos</span>
+            <p id="kpi-daily-avg" class="text-danger" style="font-size: 1.4rem; margin-top: 4px;">R$ 0,00</p>
+          </div>
+          <div class="kpi-card">
+            <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Maior Ofensor de Gastos</span>
+            <p id="kpi-top-category" style="font-size: 1.1rem; font-weight:700; margin-top: 4px;">-</p>
+          </div>
+        </div>
+      </div>
 
-      <!-- Exibição 2: Tabela -->
-      <div id="table-wrapper" class="table-container" style="display: none;">
-        <table id="transaction-table">
-          <thead>
-            <tr>
-              <th onclick="changeSort('date')">Data <span class="sort-icon" id="sort-date">▲▼</span></th>
-              <th onclick="changeSort('desc')">Descrição <span class="sort-icon" id="sort-desc">▲▼</span></th>
-              <th onclick="changeSort('category')">Categoria <span class="sort-icon" id="sort-category">▲▼</span></th>
-              <th onclick="changeSort('amount')">Valor <span class="sort-icon" id="sort-amount">▲▼</span></th>
-              <th onclick="changeSort('status')">Status <span class="sort-icon" id="sort-status">▲▼</span></th>
-              <th>GPS</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="transaction-list"></tbody>
-        </table>
+      <!-- Gráfico de Rosca -->
+      <div class="card">
+        <h3>Distribuição por Categoria</h3>
+        <div class="chart-container">
+          <canvas id="expenseChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Mapa de Gastos com GPS -->
+      <div class="card">
+        <h3>Mapa de Gastos</h3>
+        <div id="map"></div>
       </div>
     </div>
+  </div>
 
-    <!-- Dashboard: Gráfico -->
-    <div class="card">
-      <h3>Distribuição por Categoria</h3>
-      <div class="chart-container">
-        <canvas id="expenseChart"></canvas>
-      </div>
-    </div>
-
-    <!-- Mapa -->
-    <div class="card">
-      <h3>Mapa de Gastos</h3>
-      <div id="map"></div>
+  <!-- Dock de Navegação Flutuante no Rodapé -->
+  <div class="bottom-dock-overlay">
+    <div class="bottom-dock">
+      <button class="dock-btn active" id="dock-home" onclick="switchTab('home')">
+        <span>🏠</span> Início
+      </button>
+      <button class="dock-btn" id="dock-analytics" onclick="switchTab('analytics')">
+        <span>📊</span> Análise
+      </button>
     </div>
   </div>
 
@@ -814,12 +781,10 @@
     window.addEventListener('DOMContentLoaded', () => {
       setCurrentSystemMonth();
       setViewMode(currentViewMode);
-      initMap();
 
       const checkFirebaseInterval = setInterval(() => {
         if (window.firebaseAuth) {
           clearInterval(checkFirebaseInterval);
-          
           window.onAuthStateChanged(window.firebaseAuth, (user) => {
             currentUser = user;
             updateAuthUI();
@@ -832,6 +797,21 @@
         }
       }, 200);
     });
+
+    function switchTab(tabName) {
+      document.getElementById('tab-home').classList.toggle('hidden', tabName !== 'home');
+      document.getElementById('tab-analytics').classList.toggle('hidden', tabName !== 'analytics');
+
+      document.getElementById('dock-home').classList.toggle('active', tabName === 'home');
+      document.getElementById('dock-analytics').classList.toggle('active', tabName === 'analytics');
+
+      if (tabName === 'analytics') {
+        setTimeout(() => {
+          if (!mapInstance) initMap();
+          updateUI();
+        }, 100);
+      }
+    }
 
     function setViewMode(mode) {
       currentViewMode = mode;
@@ -859,8 +839,8 @@
       const container = document.getElementById('auth-status-container');
       if (currentUser) {
         container.innerHTML = `
-          <div class="user-card">
-            <img src="${currentUser.photoURL}" class="user-avatar" alt="Avatar">
+          <div style="background: var(--bg); border: 1px solid var(--border); padding: 12px; border-radius: var(--radius); display: flex; align-items: center; gap: 12px;">
+            <img src="${currentUser.photoURL}" style="width: 40px; height: 40px; border-radius: 50%;" alt="Avatar">
             <div style="flex: 1; overflow: hidden;">
               <strong style="font-size: 0.85rem; display: block; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${currentUser.displayName}</strong>
               <small style="font-size: 0.75rem; color: var(--primary);">☁️ Sincronizado</small>
@@ -940,7 +920,7 @@
           <div><strong style="font-size:0.8rem; color:var(--text-muted);">DATA:</strong> ${t.date}</div>
           <div><strong style="font-size:0.8rem; color:var(--text-muted);">CATEGORIA:</strong> ${t.category}</div>
           <div><strong style="font-size:0.8rem; color:var(--text-muted);">TIPO:</strong> ${t.ruleId ? '🔄 Agendamento Fixo/Parcelado' : '⚡ Registro Avulso'}</div>
-          <div><strong style="font-size:0.8rem; color:var(--text-muted);">LOCALIZAÇÃO GPS:</strong> ${t.location ? `Lat ${t.location.lat.toFixed(4)}, Lng${t.location.lng.toFixed(4)} 📍` : 'Não registrada'}</div>
+          <div><strong style="font-size:0.8rem; color:var(--text-muted);">GPS:</strong> ${t.location ? `Lat ${t.location.lat.toFixed(4)}, Lng${t.location.lng.toFixed(4)} 📍` : 'Não registrada'}</div>
         </div>
 
         <button class="btn btn-danger" onclick="deleteTransaction(${t.id}); toggleDetailModal();" style="width: 100%; margin-top: 8px;">
@@ -1107,18 +1087,15 @@
       recurringRules.forEach(rule => {
         const div = document.createElement('div');
         div.className = 'rule-item';
+        div.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:12px; border:1px solid var(--border); border-radius:var(--radius); margin-bottom:8px; background:var(--bg);";
         
         const typeTxt = rule.type === 'installment' ? `${rule.installments}x` : 'Fixo Indefinido';
         div.innerHTML = `
           <div>
             <strong>${rule.desc}</strong> - <span style="color:var(--danger);">${formatCurrency(rule.amount)}</span><br>
-            <small style="color:var(--text-muted);">
-              Dia ${rule.day} | ${typeTxt}
-            </small>
+            <small style="color:var(--text-muted);">Dia ${rule.day} | ${typeTxt}</small>
           </div>
-          <button onclick="deleteRecurringRule(${rule.id})" class="close-circle-btn">
-            ✕
-          </button>
+          <button onclick="deleteRecurringRule(${rule.id})" class="close-circle-btn">✕</button>
         `;
         container.appendChild(div);
       });
@@ -1130,11 +1107,9 @@
 
       if (confirm(`Remover os lançamentos pendentes de "${rule.desc}"?`)) {
         transactions = transactions.filter(t => !(t.ruleId === ruleId && t.status === 'pending'));
-
         if (confirm(`Remover totalmente o agendamento de "${rule.desc}"?`)) {
           recurringRules = recurringRules.filter(r => r.id !== ruleId);
         }
-
         saveData();
         renderRecurringRulesList();
         updateUI();
@@ -1280,8 +1255,10 @@
       let expense = 0;
       const categoryTotals = {};
 
-      mapMarkers.forEach(m => mapInstance && mapInstance.removeLayer(m));
-      mapMarkers = [];
+      if (mapInstance) {
+        mapMarkers.forEach(m => mapInstance.removeLayer(m));
+        mapMarkers = [];
+      }
 
       filtered.forEach(t => {
         if (t.amount > 0) {
@@ -1297,7 +1274,7 @@
         const badgeText = isPaid ? 'Pago ✅' : 'Pendente ⏳';
         const recurringTag = t.ruleId ? '<span class="badge-recurring">🔄 Fixo/Parc</span>' : '';
 
-        // Renderizar Tile (Card)
+        // Tile (Card)
         const tile = document.createElement('div');
         tile.className = 'tile-card';
         tile.onclick = (e) => {
@@ -1318,7 +1295,7 @@
         `;
         tilesContainer.appendChild(tile);
 
-        // Renderizar Tabela
+        // Tabela
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${t.date}</td>
@@ -1339,11 +1316,71 @@
         }
       });
 
+      // Atualiza Valores do Resumo
       document.getElementById('total-income').textContent = formatCurrency(income);
       document.getElementById('total-expense').textContent = formatCurrency(expense);
       document.getElementById('total-balance').textContent = formatCurrency(income - expense);
 
+      // Atualiza KPIs & Feedback Inteligente
+      calculateAnalytics(income, expense, categoryTotals);
+
+      // Atualiza Gráfico
       updateChart(categoryTotals);
+    }
+
+    function calculateAnalytics(income, expense, categoryTotals) {
+      // Taxa de Poupança
+      let savingsRate = 0;
+      if (income > 0) {
+        savingsRate = Math.max(0, ((income - expense) / income) * 100);
+      }
+      document.getElementById('kpi-savings-rate').textContent = `${savingsRate.toFixed(1)}%`;
+
+      // Média Diária de Gastos
+      const daysInMonth = 30;
+      const dailyAvg = expense / daysInMonth;
+      document.getElementById('kpi-daily-avg').textContent = formatCurrency(dailyAvg);
+
+      // Maior Ofensor
+      let topCategory = '-';
+      let maxVal = 0;
+      for (const [cat, val] of Object.entries(categoryTotals)) {
+        if (val > maxVal) {
+          maxVal = val;
+          topCategory = `${cat} (${formatCurrency(val)})`;
+        }
+      }
+      document.getElementById('kpi-top-category').textContent = topCategory;
+
+      // Gerador de Feedback Inteligente
+      const feedbackBox = document.getElementById('feedback-container');
+      feedbackBox.innerHTML = '';
+
+      const feedbacks = [];
+
+      if (income === 0 && expense === 0) {
+        feedbacks.push('ℹ️ Sem registros neste mês. Adicione suas receitas e despesas na aba Início para ver o diagnóstico.');
+      } else {
+        if (expense > income) {
+          feedbacks.push('⚠️ **Alerta de Atenção:** Suas despesas superaram suas receitas neste mês. Tente identificar gastos não essenciais para cortar.');
+        } else if (savingsRate >= 20) {
+          feedbacks.push('🎉 **Excelente Gestão!** Você economizou mais de 20% do que ganhou este mês. Ótimo momento para criar uma reserva.');
+        } else {
+          feedbacks.push('👍 **Saldo Positivo:** Você fechou o mês no azul! Tente aumentar a taxa de poupança no próximo mês.');
+        }
+
+        if (maxVal > 0) {
+          const perc = ((maxVal / expense) * 100).toFixed(0);
+          feedbacks.push(`📌 **Ponto de Atenção:** A categoria **${topCategory.split(' ')[0]}** consumiu **${perc}%** de todo o seu orçamento de despesas.`);
+        }
+      }
+
+      feedbacks.forEach(text => {
+        const item = document.createElement('div');
+        item.className = 'feedback-item';
+        item.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        feedbackBox.appendChild(item);
+      });
     }
 
     function updateChart(categoryTotals) {
