@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Finanzzas v6.0 - Gerenciador Financeiro</title>
+  <title>Finanzzas v7.0 - Gerenciador Financeiro</title>
 
   <!-- Conexão PWA Manifest & Ícones -->
   <link rel="manifest" href="manifest.json">
@@ -22,6 +22,8 @@
   <!-- Leaflet CSS & JS para Mapas -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <!-- HTML5 QR Code Scanner para Leitura de DANFE -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
   <!-- Firebase SDKs (v10.8.0 Modulares) -->
   <script type="module">
@@ -193,6 +195,24 @@
       -webkit-text-fill-color: transparent;
     }
 
+    /* Input Mês Estilizado e Legível no Desktop */
+    input[type="month"] {
+      appearance: none;
+      -webkit-appearance: none;
+      padding: 10px 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background-color: var(--input-bg);
+      color: var(--text);
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+    input[type="month"]::-webkit-calendar-picker-indicator {
+      filter: invert(0.8);
+      cursor: pointer;
+    }
+
     /* Bottom Dock Flutuante */
     .bottom-dock-overlay {
       position: fixed;
@@ -302,6 +322,7 @@
       border-radius: var(--radius);
     }
 
+    /* Correção do Diagnóstico Financeiro em Dispositivos Móveis */
     .feedback-box {
       background: rgba(0, 255, 234, 0.05);
       border: 1px solid rgba(0, 255, 234, 0.2);
@@ -310,15 +331,21 @@
       margin-top: 10px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
+      overflow: hidden;
+      box-sizing: border-box;
+      width: 100%;
     }
 
     .feedback-item {
       font-size: 0.88rem;
-      line-height: 1.4;
+      line-height: 1.45;
       display: flex;
       align-items: flex-start;
       gap: 8px;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      white-space: normal;
     }
 
     .badge {
@@ -378,7 +405,7 @@
       box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
     }
 
-    /* Estilização Redesenhada do Menu Lateral (Sidebar) */
+    /* Sidebar Redesenhada */
     .sidebar-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -424,16 +451,13 @@
       letter-spacing: 0.5px;
     }
 
-    /* Custom File Input Styling */
     .custom-file-wrapper {
       position: relative;
       display: inline-block;
       width: 100%;
     }
 
-    .custom-file-input {
-      display: none;
-    }
+    .custom-file-input { display: none; }
 
     .custom-file-label {
       display: flex;
@@ -516,8 +540,8 @@
     }
 
     .action-sub-row { display: flex; gap: 8px; margin-top: 6px; }
-    .geo-btn { background: #8b5cf6; color: white; border: none; font-size: 0.85rem; padding: 8px 12px; border-radius: var(--radius); cursor: pointer; flex: 1; }
-    .recurring-trigger-btn { background: #3b82f6; color: white; border: none; font-size: 0.85rem; padding: 8px 12px; border-radius: var(--radius); cursor: pointer; flex: 1; }
+    .recurring-trigger-btn { background: #3b82f6; color: white; border: none; font-size: 0.85rem; padding: 10px 12px; border-radius: var(--radius); cursor: pointer; flex: 1; font-weight: 700; }
+    .qr-scan-btn { background: #8b5cf6; color: white; border: none; font-size: 0.85rem; padding: 10px 12px; border-radius: var(--radius); cursor: pointer; flex: 1; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; }
 
     .view-toggle-btns { display: flex; gap: 4px; background: var(--input-bg); padding: 3px; border-radius: var(--radius); border: 1px solid var(--border); }
     .view-btn { padding: 6px 10px; font-size: 0.8rem; border: none; background: transparent; color: var(--text-muted); border-radius: 8px; cursor: pointer; }
@@ -538,6 +562,8 @@
 
     #map { height: 240px; width: 100%; border-radius: var(--radius); margin-top: 10px; z-index: 1; }
     .chart-container { position: relative; height: 240px; width: 100%; }
+
+    #qr-reader { width: 100%; border-radius: var(--radius); overflow: hidden; margin-top: 10px; border: 1px solid var(--border); }
   </style>
 </head>
 <body>
@@ -567,7 +593,7 @@
     <!-- Overlay Sidebar -->
     <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
 
-    <!-- Aba Lateral (Sidebar Redesenhada) -->
+    <!-- Aba Lateral (Sidebar) -->
     <div class="sidebar" id="sidebar">
       <div>
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 14px;">
@@ -578,13 +604,11 @@
           <button class="close-circle-btn" onclick="toggleSidebar()">✕</button>
         </div>
 
-        <!-- Seção 1: Perfil do Usuário -->
         <div class="sidebar-section">
           <span class="sidebar-section-title">☁️ Sua Conta</span>
           <div id="auth-status-container"></div>
         </div>
 
-        <!-- Seção 2: Configurações do App -->
         <div class="sidebar-section">
           <span class="sidebar-section-title">⚙️ Configurações</span>
           <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -596,14 +620,11 @@
           </div>
         </div>
 
-        <!-- Seção 3: Backup & Dados Redesenhados -->
         <div class="sidebar-section">
           <span class="sidebar-section-title">💾 Backup de Dados</span>
-          
           <button class="btn btn-info" style="width: 100%; border-radius: var(--radius); padding: 10px;" onclick="exportDataJSON()">
             📤 Exportar JSON
           </button>
-
           <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
             <div class="custom-file-wrapper">
               <input type="file" id="import-file" class="custom-file-input" accept=".json" onchange="handleFileSelect(this)">
@@ -611,7 +632,6 @@
                 📂 Escolher arquivo JSON
               </label>
             </div>
-            
             <button class="btn btn-secondary" onclick="importDataJSON()" style="width: 100%; border-radius: var(--radius); padding: 10px;">
               📥 Importar Backup
             </button>
@@ -623,6 +643,20 @@
         <button class="btn btn-primary" onclick="openInExternalBrowser()" style="width: 100%; margin-top: 0; background: var(--card-bg); color: var(--text); border: 1px solid var(--border);">
           🌐 Abrir no Navegador
         </button>
+      </div>
+    </div>
+
+    <!-- Modal Scanner QR Code DANFE -->
+    <div class="modal-overlay" id="qr-modal">
+      <div class="modal">
+        <div class="modal-header-sticky">
+          <h3>📷 Escanear QR Code DANFE</h3>
+          <button class="close-circle-btn" onclick="stopQrScanner()">✕</button>
+        </div>
+        <div id="qr-reader"></div>
+        <p style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: 12px;">
+          Aproxime o QR Code da Nota Fiscal Eletrônica (NFC-e) da câmera.
+        </p>
       </div>
     </div>
 
@@ -663,7 +697,10 @@
                 <option value="Outros">Outros</option>
               </select>
             </div>
-            <button type="submit" class="btn btn-primary" style="margin-top: 8px;">Salvar Lançamento</button>
+            <input type="hidden" id="quick-danfe-url">
+            <span id="quick-danfe-status" style="font-size: 0.75rem; color: var(--primary);"></span>
+            <button type="button" class="qr-scan-btn" onclick="startQrScanner('quick')">📷 Escanear QR Code DANFE</button>
+            <button type="submit" class="btn btn-primary" style="margin-top: 4px;">Salvar Lançamento</button>
           </div>
         </form>
       </div>
@@ -746,7 +783,7 @@
       </div>
     </div>
 
-    <!-- Header Principal (Limpo) -->
+    <!-- Header Principal -->
     <header>
       <div class="header-left">
         <button class="menu-btn" onclick="toggleSidebar()">☰</button>
@@ -758,7 +795,7 @@
       </div>
     </header>
 
-    <!-- Barra de Mês e Exportação CSV -->
+    <!-- Barra de Mês (Automático + Estilizado para Desktop) -->
     <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
       <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
         <label for="month-picker" style="font-size: 0.85rem; font-weight: 600;">Mês:</label>
@@ -822,10 +859,11 @@
             <div style="grid-column: span 2;">
               <label style="font-size: 0.8rem;">Ações Adicionais</label>
               <div class="action-sub-row">
-                <button type="button" class="geo-btn" onclick="captureLocation()">📍 GPS Atual</button>
+                <button type="button" class="qr-scan-btn" onclick="startQrScanner('main')">📷 Ler DANFE</button>
                 <button type="button" class="recurring-trigger-btn" onclick="toggleRecurringModal()">📌 Fixos & Parcelas</button>
               </div>
-              <span id="geo-status" style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 4px;"></span>
+              <input type="hidden" id="main-danfe-url">
+              <span id="main-danfe-status" style="font-size: 0.75rem; color: var(--primary); display: block; margin-top: 4px;"></span>
             </div>
           </div>
 
@@ -970,12 +1008,13 @@
     let hideValues = localStorage.getItem('hideValues') === 'true';
     let currentTheme = localStorage.getItem('appTheme') || 'dark';
     let currentUser = null;
-    let currentLocation = null;
     let chartInstance = null;
     let trendChartInstance = null;
     let mapInstance = null;
     let mapMarkers = [];
     let firestoreUnsubscribe = null;
+    let html5QrCode = null;
+    let activeQrTarget = 'main';
 
     let currentSortColumn = 'date';
     let sortAscending = true;
@@ -1053,17 +1092,69 @@
       return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
 
+    /* Leitor de QR Code DANFE */
+    function startQrScanner(target) {
+      activeQrTarget = target;
+      document.getElementById('qr-modal').classList.add('open');
+      
+      html5QrCode = new Html5Qrcode("qr-reader");
+      html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 220, height: 220 } },
+        (decodedText) => {
+          if (activeQrTarget === 'quick') {
+            document.getElementById('quick-danfe-url').value = decodedText;
+            document.getElementById('quick-danfe-status').textContent = '📄 QR Code DANFE Lido com Sucesso!';
+          } else {
+            document.getElementById('main-danfe-url').value = decodedText;
+            document.getElementById('main-danfe-status').textContent = '📄 QR Code DANFE Lido com Sucesso!';
+          }
+          stopQrScanner();
+        },
+        () => {}
+      ).catch(err => alert("Erro ao abrir câmera: " + err));
+    }
+
+    function stopQrScanner() {
+      if (html5QrCode) {
+        html5QrCode.stop().then(() => {
+          html5QrCode.clear();
+          document.getElementById('qr-modal').classList.remove('open');
+        }).catch(() => document.getElementById('qr-modal').classList.remove('open'));
+      } else {
+        document.getElementById('qr-modal').classList.remove('open');
+      }
+    }
+
+    /* Captura Transparente de GPS */
+    function getAutoLocation() {
+      return new Promise((resolve) => {
+        if (!navigator.geolocation) {
+          resolve(null);
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(
+          (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+          () => resolve(null),
+          { timeout: 4000 }
+        );
+      });
+    }
+
     function toggleAddModal() {
       document.getElementById('add-modal').classList.toggle('open');
     }
 
-    function addQuickTransaction(e) {
+    async function addQuickTransaction(e) {
       e.preventDefault();
       const desc = document.getElementById('quick-desc').value;
       const amount = parseFloat(document.getElementById('quick-amount').value);
       const type = document.getElementById('quick-type').value;
       const category = document.getElementById('quick-category').value;
       const selectedMonth = document.getElementById('month-picker').value;
+      const danfeUrl = document.getElementById('quick-danfe-url').value;
+
+      const loc = await getAutoLocation();
 
       transactions.unshift({
         id: Date.now(),
@@ -1073,12 +1164,43 @@
         date: new Date().toLocaleDateString('pt-BR'),
         month: selectedMonth,
         status: 'paid',
-        location: null
+        location: loc,
+        danfeUrl: danfeUrl || null
       });
 
       saveData();
       document.getElementById('quick-expense-form').reset();
+      document.getElementById('quick-danfe-status').textContent = '';
       toggleAddModal();
+      updateUI();
+    }
+
+    async function addTransaction(e) {
+      e.preventDefault();
+      const desc = document.getElementById('desc').value;
+      const amount = parseFloat(document.getElementById('amount').value);
+      const type = document.getElementById('type').value;
+      const category = document.getElementById('category').value;
+      const selectedMonth = document.getElementById('month-picker').value;
+      const danfeUrl = document.getElementById('main-danfe-url').value;
+
+      const loc = await getAutoLocation();
+
+      transactions.unshift({
+        id: Date.now(),
+        desc,
+        amount: type === 'expense' ? -Math.abs(amount) : Math.abs(amount),
+        category,
+        date: new Date().toLocaleDateString('pt-BR'),
+        month: selectedMonth,
+        status: 'paid',
+        location: loc,
+        danfeUrl: danfeUrl || null
+      });
+
+      saveData();
+      document.getElementById('main-danfe-status').textContent = '';
+      document.getElementById('expense-form').reset();
       updateUI();
     }
 
@@ -1089,6 +1211,12 @@
       const isPaid = t.status === 'paid';
       const badgeClass = isPaid ? 'badge-paid' : 'badge-pending';
       const badgeText = isPaid ? 'Pago ✅' : 'Pendente ⏳';
+
+      const danfeButton = t.danfeUrl ? `
+        <a href="${t.danfeUrl}" target="_blank" class="btn btn-info" style="text-decoration:none; margin-top:4px;">
+          📄 Ver Nota Fiscal na Receita (DANFE)
+        </a>
+      ` : '';
 
       const body = document.getElementById('detail-modal-body');
       body.innerHTML = `
@@ -1129,6 +1257,8 @@
           <button type="submit" class="btn btn-secondary" style="margin-top:4px;">💾 Salvar Alterações</button>
         </form>
 
+        ${danfeButton}
+
         <button class="btn btn-danger" onclick="deleteTransaction(${t.id}); toggleDetailModal();" style="width: 100%; margin-top: 4px;">
           🗑️ Excluir Registro
         </button>
@@ -1142,14 +1272,11 @@
       const t = transactions.find(item => item.id === id);
       if (!t) return;
 
-      const desc = document.getElementById('edit-desc').value;
+      t.desc = document.getElementById('edit-desc').value;
       const amount = parseFloat(document.getElementById('edit-amount').value);
       const type = document.getElementById('edit-type').value;
-      const category = document.getElementById('edit-category').value;
-
-      t.desc = desc;
       t.amount = type === 'expense' ? -Math.abs(amount) : Math.abs(amount);
-      t.category = category;
+      t.category = document.getElementById('edit-category').value;
 
       saveData();
       toggleDetailModal();
@@ -1254,50 +1381,11 @@
       document.getElementById('installments-box').style.display = recType === 'installment' ? 'block' : 'none';
     }
 
-    function captureLocation() {
-      const status = document.getElementById('geo-status');
-      if (!navigator.geolocation) { status.textContent = "Sem GPS."; return; }
-      status.textContent = "Obtendo GPS...";
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          currentLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-          status.textContent = "📍 Posição capturada!";
-        },
-        () => { status.textContent = "Erro de GPS."; }
-      );
-    }
-
     function openInExternalBrowser() { window.open(window.location.href, '_blank'); }
 
     function changeSort(column) {
       if (currentSortColumn === column) { sortAscending = !sortAscending; } 
       else { currentSortColumn = column; sortAscending = true; }
-      updateUI();
-    }
-
-    function addTransaction(e) {
-      e.preventDefault();
-      const desc = document.getElementById('desc').value;
-      const amount = parseFloat(document.getElementById('amount').value);
-      const type = document.getElementById('type').value;
-      const category = document.getElementById('category').value;
-      const selectedMonth = document.getElementById('month-picker').value;
-
-      transactions.unshift({
-        id: Date.now(),
-        desc,
-        amount: type === 'expense' ? -Math.abs(amount) : Math.abs(amount),
-        category,
-        date: new Date().toLocaleDateString('pt-BR'),
-        month: selectedMonth,
-        status: 'paid',
-        location: currentLocation
-      });
-
-      saveData();
-      currentLocation = null;
-      document.getElementById('geo-status').textContent = '';
-      document.getElementById('expense-form').reset();
       updateUI();
     }
 
@@ -1415,13 +1503,14 @@
       const filtered = transactions.filter(t => t.month === selectedMonth);
       if (filtered.length === 0) { alert('Nenhum registro para este mês.'); return; }
 
-      let csv = '\uFEFFData;Descrição;Categoria;Valor;Status;Latitude;Longitude\n';
+      let csv = '\uFEFFData;Descrição;Categoria;Valor;Status;Latitude;Longitude;Link_DANFE\n';
       filtered.forEach(t => {
         const val = t.amount.toString().replace('.', ',');
         const lat = t.location ? t.location.lat : '';
         const lng = t.location ? t.location.lng : '';
+        const danfe = t.danfeUrl || '';
         const statusTxt = t.status === 'paid' ? 'Pago' : 'Pendente';
-        csv += `"${t.date}";"${t.desc}";"${t.category}";"${val}";"${statusTxt}";"${lat}";"${lng}"\n`;
+        csv += `"${t.date}";"${t.desc}";"${t.category}";"${val}";"${statusTxt}";"${lat}";"${lng}";"${danfe}"\n`;
       });
 
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -1539,6 +1628,7 @@
         const badgeClass = isPaid ? 'badge-paid' : 'badge-pending';
         const badgeText = isPaid ? 'Pago ✅' : 'Pendente ⏳';
         const recurringTag = t.ruleId ? '<span class="badge-recurring">🔄 Fixo/Parc</span>' : '';
+        const danfeTag = t.danfeUrl ? '📄' : '';
 
         // Tile (Card)
         const tile = document.createElement('div');
@@ -1551,7 +1641,7 @@
 
         tile.innerHTML = `
           <div class="tile-left">
-            <span class="tile-title">${t.desc} ${recurringTag}</span>
+            <span class="tile-title">${t.desc} ${recurringTag} ${danfeTag}</span>
             <span class="tile-sub">${t.date} • ${t.category} ${t.location ? '📍' : ''}</span>
           </div>
           <div class="tile-right">
@@ -1565,7 +1655,7 @@
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${t.date}</td>
-          <td>${t.desc} ${recurringTag}</td>
+          <td>${t.desc} ${recurringTag} ${danfeTag}</td>
           <td>${t.category}</td>
           <td class="${t.amount < 0 ? 'text-danger' : 'text-success'}">${formatCurrency(t.amount)}</td>
           <td><span class="badge ${badgeClass}" onclick="toggleStatus(${t.id})">${badgeText}</span></td>
