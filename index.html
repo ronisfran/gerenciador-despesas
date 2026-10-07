@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Finanzzas v3.0 - Gerenciador Financeiro</title>
+  <title>Finanzzas v4.0 - Gerenciador Financeiro</title>
 
   <!-- Conexão PWA Manifest & Ícones -->
   <link rel="manifest" href="manifest.json">
@@ -23,7 +23,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
-  <!-- Firebase SDKs -->
+  <!-- Firebase SDKs (v10.8.0 Modulares) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -114,6 +114,41 @@
       gap: 16px;
     }
 
+    /* Tela de Forced Login (Lock Screen) */
+    .login-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 80vh;
+      text-align: center;
+      gap: 20px;
+      padding: 20px;
+    }
+
+    .login-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 32px 24px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .login-logo {
+      width: 72px;
+      height: 72px;
+      border-radius: 18px;
+      box-shadow: 0 0 20px rgba(0, 255, 234, 0.3);
+    }
+
+    .hidden { display: none !important; }
+
     header {
       display: flex;
       justify-content: space-between;
@@ -163,12 +198,10 @@
       font-size: 0.85rem;
     }
 
-    /* Navegação Flutuante no Rodapé (Floating Bottom Dock) */
+    /* Bottom Dock */
     .bottom-dock-overlay {
       position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
+      bottom: 0; left: 0; right: 0;
       height: 85px;
       background: linear-gradient(to top, var(--bg) 65%, transparent);
       pointer-events: none;
@@ -212,7 +245,6 @@
       box-shadow: 0 0 12px rgba(0, 255, 234, 0.4);
     }
 
-    /* Alternância de Visões/Telas */
     .tab-view {
       display: flex;
       flex-direction: column;
@@ -220,14 +252,11 @@
       animation: fadeIn 0.25s ease-in-out;
     }
 
-    .tab-view.hidden { display: none; }
-
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(6px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Cards e Métricas */
     .card {
       background: var(--card-bg);
       padding: 18px;
@@ -277,7 +306,6 @@
       gap: 8px;
     }
 
-    /* Badges & Botões */
     .badge {
       padding: 4px 10px;
       border-radius: 20px;
@@ -319,7 +347,6 @@
     .btn-info { background: #3b82f6; color: white; border-radius: var(--radius); }
     .btn-danger { background: var(--danger); color: white; border-radius: var(--radius); }
 
-    /* Modais */
     .close-circle-btn {
       background: #ef4444;
       border: none;
@@ -374,7 +401,6 @@
       margin-bottom: 16px;
     }
 
-    /* Aba Lateral */
     .sidebar-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -400,7 +426,6 @@
     .sidebar.open { left: 0; }
     .sidebar-overlay.open { display: block; }
 
-    /* Inputs e Form */
     input, select {
       padding: 10px 14px;
       border-radius: var(--radius);
@@ -425,7 +450,6 @@
     .geo-btn { background: #8b5cf6; color: white; border: none; font-size: 0.85rem; padding: 8px 12px; border-radius: var(--radius); cursor: pointer; flex: 1; }
     .recurring-trigger-btn { background: #3b82f6; color: white; border: none; font-size: 0.85rem; padding: 8px 12px; border-radius: var(--radius); cursor: pointer; flex: 1; }
 
-    /* Tiles & Tabela */
     .view-toggle-btns { display: flex; gap: 4px; background: var(--input-bg); padding: 3px; border-radius: var(--radius); border: 1px solid var(--border); }
     .view-btn { padding: 6px 10px; font-size: 0.8rem; border: none; background: transparent; color: var(--text-muted); border-radius: 8px; cursor: pointer; }
     .view-btn.active { background: var(--card-bg); color: var(--primary); font-weight: 700; }
@@ -449,131 +473,153 @@
 </head>
 <body>
 
-  <!-- Overlay da Aba Lateral -->
-  <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
-
-  <!-- Aba Lateral -->
-  <div class="sidebar" id="sidebar">
-    <div>
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 14px;">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <img src="icon-192.png" class="brand-logo" alt="Logo">
-          <h3 style="color: var(--primary);">Finanzzas</h3>
-        </div>
-        <button class="close-circle-btn" onclick="toggleSidebar()">✕</button>
+  <!-- =================================================================== -->
+  <!-- TELA DE FORCED LOGIN (LOCK SCREEN) -->
+  <!-- =================================================================== -->
+  <div id="auth-lock-screen" class="login-screen">
+    <div class="login-box">
+      <img src="icon-512.png" class="login-logo" alt="Finanzzas Logo">
+      <div>
+        <h2 style="font-size: 1.6rem; font-weight: 800; color: var(--primary);">Finanzzas</h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Gerenciador Financeiro Pessoal</p>
       </div>
 
-      <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 12px;">
-        <h4 style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">☁️ Sincronização em Nuvem</h4>
-        <div id="auth-status-container">
-          <button class="btn btn-primary" id="login-btn" onclick="loginWithGoogle()" style="margin-top: 0; background: #4285f4; color: white;">
-            🔑 Entrar com Google
-          </button>
-        </div>
-      </div>
+      <p style="font-size: 0.88rem; line-height: 1.4; color: var(--text); margin: 8px 0;">
+        Faça login com sua conta do Google para proteger e sincronizar seus dados em nuvem com segurança.
+      </p>
 
-      <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 12px;">
-        <h4 style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Backup em Arquivo</h4>
-        <button class="btn btn-info" style="width: 100%;" onclick="exportDataJSON()">📤 Exportar JSON</button>
-        <div style="margin-top: 10px;">
-          <input type="file" id="import-file" accept=".json" style="width: 100%; font-size: 0.8rem;">
-          <button class="btn btn-secondary" onclick="importDataJSON()" style="width: 100%; margin-top: 6px;">
-            📥 Importar Backup
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div style="border-top: 1px solid var(--border); padding-top: 16px;">
-      <button class="btn btn-primary" onclick="openInExternalBrowser()" style="width: 100%; margin-top: 0; background: var(--card-bg); color: var(--text); border: 1px solid var(--border);">
-        🌐 Abrir no Navegador
+      <button class="btn btn-primary" onclick="loginWithGoogle()" style="padding: 14px; font-size: 1rem; background: #4285f4; color: white; display: flex; gap: 10px; align-items: center; justify-content: center;">
+        <svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1H12v3.8h5.35c-.25 1.5-1.5 4.35-5.35 4.35-3.2 0-5.85-2.65-5.85-5.85S8.8 7.55 12 7.55c1.8 0 3 .75 3.7 1.4L18.4 6.3C16.8 4.8 14.6 4 12 4 7.58 4 4 7.58 4 12s3.58 8 8 8c4.6 0 7.65-3.2 7.65-7.8 0-.5-.05-.8-.3-1.1z"/></svg>
+        Entrar com Google
       </button>
     </div>
   </div>
 
-  <!-- Modal Detalhes -->
-  <div class="modal-overlay" id="detail-modal">
-    <div class="modal">
-      <div class="modal-header-sticky">
-        <h3>📄 Detalhes do Registro</h3>
-        <button class="close-circle-btn" onclick="toggleDetailModal()">✕</button>
-      </div>
-      <div id="detail-modal-body" style="display: flex; flex-direction: column; gap: 12px;"></div>
-    </div>
-  </div>
+  <!-- =================================================================== -->
+  <!-- CONTEÚDO PRINCIPAL DO APLICATIVO (PROTEGIDO POR LOGIN) -->
+  <!-- =================================================================== -->
+  <div id="app-main-content" class="container hidden">
+    <!-- Overlay Sidebar -->
+    <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
 
-  <!-- Modal Fixos & Parcelas -->
-  <div class="modal-overlay" id="recurring-modal">
-    <div class="modal">
-      <div class="modal-header-sticky">
-        <h3>📅 Dívidas Fixas & Parceladas</h3>
-        <button class="close-circle-btn" onclick="toggleRecurringModal()">✕</button>
-      </div>
-
-      <form id="recurring-form" onsubmit="addRecurringExpense(event)" style="border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 16px;">
-        <h4 style="font-size: 0.85rem; margin-bottom: 12px; color: var(--primary); text-transform: uppercase;">➕ Cadastrar Projeção</h4>
-        
-        <div style="display: flex; flex-direction: column; gap: 12px;">
-          <div>
-            <label style="font-size: 0.8rem; font-weight: 600;">Descrição</label>
-            <input type="text" id="rec-desc" placeholder="Ex: Aluguel, Financiamento" required style="width: 100%;">
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <div>
-              <label style="font-size: 0.8rem; font-weight: 600;">Valor (R$)</label>
-              <input type="number" step="0.01" id="rec-amount" placeholder="0,00" required style="width: 100%;">
-            </div>
-            <div>
-              <label style="font-size: 0.8rem; font-weight: 600;">Dia Vencimento</label>
-              <input type="number" id="rec-day" min="1" max="31" placeholder="Ex: 10" required style="width: 100%;">
-            </div>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <div>
-              <label style="font-size: 0.8rem; font-weight: 600;">Tipo</label>
-              <select id="rec-type" onchange="toggleInstallmentsField()" style="width: 100%;">
-                <option value="fixed">Gasto Fixo Mensal</option>
-                <option value="installment">Compra Parcelada</option>
-              </select>
-            </div>
-            <div id="installments-box" style="display: none;">
-              <label style="font-size: 0.8rem; font-weight: 600;">Qtd. Parcelas</label>
-              <input type="number" id="rec-installments" min="2" max="120" value="2" style="width: 100%;">
-            </div>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <div>
-              <label style="font-size: 0.8rem; font-weight: 600;">Mês de Início</label>
-              <input type="month" id="rec-start-month" required style="width: 100%;">
-            </div>
-            <div>
-              <label style="font-size: 0.8rem; font-weight: 600;">Categoria</label>
-              <select id="rec-category" style="width: 100%;">
-                <option value="Moradia">Moradia</option>
-                <option value="Alimentação">Alimentação</option>
-                <option value="Transporte">Transporte</option>
-                <option value="Lazer">Lazer</option>
-                <option value="Trabalho">Trabalho</option>
-                <option value="Outros">Outros</option>
-              </select>
-            </div>
-          </div>
-
-          <button type="submit" class="btn btn-primary" style="margin-top: 6px;">Agendar Projeção</button>
-        </div>
-      </form>
-
+    <!-- Aba Lateral (Sidebar) -->
+    <div class="sidebar" id="sidebar">
       <div>
-        <h4 style="font-size: 0.85rem; margin-bottom: 10px; color: var(--text-muted); text-transform: uppercase;">📋 Agendamentos Ativos</h4>
-        <div id="recurring-rules-list"></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 14px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <img src="icon-192.png" class="brand-logo" alt="Logo">
+            <h3 style="color: var(--primary);">Finanzzas</h3>
+          </div>
+          <button class="close-circle-btn" onclick="toggleSidebar()">✕</button>
+        </div>
+
+        <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 12px;">
+          <h4 style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">☁️ Sua Conta</h4>
+          <div id="auth-status-container"></div>
+        </div>
+
+        <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 12px;">
+          <h4 style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Backup em Arquivo</h4>
+          <button class="btn btn-info" style="width: 100%;" onclick="exportDataJSON()">📤 Exportar JSON</button>
+          <div style="margin-top: 10px;">
+            <input type="file" id="import-file" accept=".json" style="width: 100%; font-size: 0.8rem;">
+            <button class="btn btn-secondary" onclick="importDataJSON()" style="width: 100%; margin-top: 6px;">
+              📥 Importar Backup
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div style="border-top: 1px solid var(--border); padding-top: 16px;">
+        <button class="btn btn-primary" onclick="openInExternalBrowser()" style="width: 100%; margin-top: 0; background: var(--card-bg); color: var(--text); border: 1px solid var(--border);">
+          🌐 Abrir no Navegador
+        </button>
       </div>
     </div>
-  </div>
 
-  <div class="container">
+    <!-- Modal Detalhes -->
+    <div class="modal-overlay" id="detail-modal">
+      <div class="modal">
+        <div class="modal-header-sticky">
+          <h3>📄 Detalhes do Registro</h3>
+          <button class="close-circle-btn" onclick="toggleDetailModal()">✕</button>
+        </div>
+        <div id="detail-modal-body" style="display: flex; flex-direction: column; gap: 12px;"></div>
+      </div>
+    </div>
+
+    <!-- Modal Fixos & Parcelas -->
+    <div class="modal-overlay" id="recurring-modal">
+      <div class="modal">
+        <div class="modal-header-sticky">
+          <h3>📅 Dívidas Fixas & Parceladas</h3>
+          <button class="close-circle-btn" onclick="toggleRecurringModal()">✕</button>
+        </div>
+
+        <form id="recurring-form" onsubmit="addRecurringExpense(event)" style="border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 16px;">
+          <h4 style="font-size: 0.85rem; margin-bottom: 12px; color: var(--primary); text-transform: uppercase;">➕ Cadastrar Projeção</h4>
+          
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600;">Descrição</label>
+              <input type="text" id="rec-desc" placeholder="Ex: Aluguel, Financiamento" required style="width: 100%;">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 600;">Valor (R$)</label>
+                <input type="number" step="0.01" id="rec-amount" placeholder="0,00" required style="width: 100%;">
+              </div>
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 600;">Dia Vencimento</label>
+                <input type="number" id="rec-day" min="1" max="31" placeholder="Ex: 10" required style="width: 100%;">
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 600;">Tipo</label>
+                <select id="rec-type" onchange="toggleInstallmentsField()" style="width: 100%;">
+                  <option value="fixed">Gasto Fixo Mensal</option>
+                  <option value="installment">Compra Parcelada</option>
+                </select>
+              </div>
+              <div id="installments-box" style="display: none;">
+                <label style="font-size: 0.8rem; font-weight: 600;">Qtd. Parcelas</label>
+                <input type="number" id="rec-installments" min="2" max="120" value="2" style="width: 100%;">
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 600;">Mês de Início</label>
+                <input type="month" id="rec-start-month" required style="width: 100%;">
+              </div>
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 600;">Categoria</label>
+                <select id="rec-category" style="width: 100%;">
+                  <option value="Moradia">Moradia</option>
+                  <option value="Alimentação">Alimentação</option>
+                  <option value="Transporte">Transporte</option>
+                  <option value="Lazer">Lazer</option>
+                  <option value="Trabalho">Trabalho</option>
+                  <option value="Outros">Outros</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="margin-top: 6px;">Agendar Projeção</button>
+          </div>
+        </form>
+
+        <div>
+          <h4 style="font-size: 0.85rem; margin-bottom: 10px; color: var(--text-muted); text-transform: uppercase;">📋 Agendamentos Ativos</h4>
+          <div id="recurring-rules-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Header Principal -->
     <header>
       <div class="header-left">
         <button class="menu-btn" onclick="toggleSidebar()">☰</button>
@@ -594,11 +640,8 @@
       </div>
     </div>
 
-    <!-- =================================================================== -->
-    <!-- TELA 1: INÍCIO (REGISTROS & HISTÓRICO) -->
-    <!-- =================================================================== -->
+    <!-- TELA 1: INÍCIO -->
     <div id="tab-home" class="tab-view">
-      <!-- Resumo em Cards -->
       <div class="summary-grid">
         <div class="card">
           <h3>Receitas</h3>
@@ -614,7 +657,6 @@
         </div>
       </div>
 
-      <!-- Formulário Novo Registro -->
       <div class="card">
         <h3 style="margin-bottom: 14px;">Novo Registro Avulso</h3>
         <form id="expense-form" onsubmit="addTransaction(event)">
@@ -662,7 +704,6 @@
         </form>
       </div>
 
-      <!-- Histórico Mensal -->
       <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
           <h3>Histórico Mensal</h3>
@@ -696,11 +737,8 @@
       </div>
     </div>
 
-    <!-- =================================================================== -->
-    <!-- TELA 2: ANÁLISE INTELIGENTE & METRICAS -->
-    <!-- =================================================================== -->
+    <!-- TELA 2: ANÁLISE -->
     <div id="tab-analytics" class="tab-view hidden">
-      <!-- Diagnóstico do App (Feedback Inteligente) -->
       <div class="card">
         <h3 style="color: var(--primary);">💡 Diagnóstico Financeiro Inteligente</h3>
         <div class="feedback-box" id="feedback-container">
@@ -708,7 +746,6 @@
         </div>
       </div>
 
-      <!-- KPIs da Saúde Financeira -->
       <div class="card">
         <h3>Métricas da Saúde Financeira</h3>
         <div class="kpi-grid" style="margin-top: 10px;">
@@ -727,7 +764,6 @@
         </div>
       </div>
 
-      <!-- Gráfico de Rosca -->
       <div class="card">
         <h3>Distribuição por Categoria</h3>
         <div class="chart-container">
@@ -735,7 +771,6 @@
         </div>
       </div>
 
-      <!-- Mapa de Gastos com GPS -->
       <div class="card">
         <h3>Mapa de Gastos</h3>
         <div id="map"></div>
@@ -743,8 +778,8 @@
     </div>
   </div>
 
-  <!-- Dock de Navegação Flutuante no Rodapé -->
-  <div class="bottom-dock-overlay">
+  <!-- Dock Flutuante no Rodapé -->
+  <div id="bottom-dock-container" class="bottom-dock-overlay hidden">
     <div class="bottom-dock">
       <button class="dock-btn active" id="dock-home" onclick="switchTab('home')">
         <span>🏠</span> Início
@@ -756,14 +791,15 @@
   </div>
 
   <script>
-    let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
-    let recurringRules = JSON.parse(localStorage.getItem('recurringRules')) || [];
+    let transactions = [];
+    let recurringRules = [];
     let currentViewMode = localStorage.getItem('viewMode') || 'tiles';
     let currentUser = null;
     let currentLocation = null;
     let chartInstance = null;
     let mapInstance = null;
     let mapMarkers = [];
+    let firestoreUnsubscribe = null;
 
     let currentSortColumn = 'date';
     let sortAscending = true;
@@ -785,18 +821,95 @@
       const checkFirebaseInterval = setInterval(() => {
         if (window.firebaseAuth) {
           clearInterval(checkFirebaseInterval);
+          
+          // OUVINTE PRINCIPAL DE AUTENTICAÇÃO (FORCED LOGIN)
           window.onAuthStateChanged(window.firebaseAuth, (user) => {
             currentUser = user;
-            updateAuthUI();
+
             if (user) {
+              // USUÁRIO LOGADO: Exibe o App e Conecta no Firestore
+              document.getElementById('auth-lock-screen').classList.add('hidden');
+              document.getElementById('app-main-content').classList.remove('hidden');
+              document.getElementById('bottom-dock-container').classList.remove('hidden');
+              
+              updateAuthUI();
               syncFromFirebase(user.uid);
             } else {
-              updateUI();
+              // USUÁRIO DESLOGADO: Desconecta o Firestore, limpa memória e tranca a tela
+              if (firestoreUnsubscribe) {
+                firestoreUnsubscribe();
+                firestoreUnsubscribe = null;
+              }
+
+              transactions = [];
+              recurringRules = [];
+              localStorage.removeItem('transactions');
+              localStorage.removeItem('recurringRules');
+
+              document.getElementById('app-main-content').classList.add('hidden');
+              document.getElementById('bottom-dock-container').classList.add('hidden');
+              document.getElementById('auth-lock-screen').classList.remove('hidden');
             }
           });
         }
       }, 200);
     });
+
+    function loginWithGoogle() {
+      window.signInWithPopup(window.firebaseAuth, window.googleProvider)
+        .catch(err => alert("Erro ao fazer login: " + err.message));
+    }
+
+    function logoutUser() {
+      if (confirm("Deseja realmente sair da sua conta?")) {
+        window.signOut(window.firebaseAuth);
+      }
+    }
+
+    function syncFromFirebase(uid) {
+      if (firestoreUnsubscribe) firestoreUnsubscribe();
+
+      const userDocRef = window.doc(window.firebaseDb, "users", uid);
+      firestoreUnsubscribe = window.onSnapshot(userDocRef, (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          transactions = data.transactions || [];
+          recurringRules = data.recurringRules || [];
+          updateUI();
+        } else {
+          saveData(true);
+        }
+      });
+    }
+
+    function saveData(syncCloud = true) {
+      if (!currentUser) return;
+
+      if (syncCloud && window.setDoc) {
+        const userDocRef = window.doc(window.firebaseDb, "users", currentUser.uid);
+        window.setDoc(userDocRef, {
+          transactions,
+          recurringRules,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+    }
+
+    function updateAuthUI() {
+      const container = document.getElementById('auth-status-container');
+      if (currentUser) {
+        container.innerHTML = `
+          <div style="background: var(--bg); border: 1px solid var(--border); padding: 12px; border-radius: var(--radius); display: flex; align-items: center; gap: 12px;">
+            <img src="${currentUser.photoURL}" style="width: 40px; height: 40px; border-radius: 50%;" alt="Avatar">
+            <div style="flex: 1; overflow: hidden;">
+              <strong style="font-size: 0.85rem; display: block; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${currentUser.displayName}</strong>
+              <small style="font-size: 0.75rem; color: var(--primary);">☁️ Conta Conectada</small>
+            </div>
+          </div>
+          <button class="btn btn-danger" onclick="logoutUser()" style="width: 100%; margin-top: 8px;">🔒 Sair da Conta</button>
+        `;
+      }
+    }
 
     function switchTab(tabName) {
       document.getElementById('tab-home').classList.toggle('hidden', tabName !== 'home');
@@ -824,66 +937,6 @@
       document.getElementById('table-wrapper').style.display = mode === 'table' ? 'block' : 'none';
 
       updateUI();
-    }
-
-    function loginWithGoogle() {
-      window.signInWithPopup(window.firebaseAuth, window.googleProvider)
-        .catch(err => alert("Erro ao fazer login: " + err.message));
-    }
-
-    function logoutUser() {
-      window.signOut(window.firebaseAuth);
-    }
-
-    function updateAuthUI() {
-      const container = document.getElementById('auth-status-container');
-      if (currentUser) {
-        container.innerHTML = `
-          <div style="background: var(--bg); border: 1px solid var(--border); padding: 12px; border-radius: var(--radius); display: flex; align-items: center; gap: 12px;">
-            <img src="${currentUser.photoURL}" style="width: 40px; height: 40px; border-radius: 50%;" alt="Avatar">
-            <div style="flex: 1; overflow: hidden;">
-              <strong style="font-size: 0.85rem; display: block; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${currentUser.displayName}</strong>
-              <small style="font-size: 0.75rem; color: var(--primary);">☁️ Sincronizado</small>
-            </div>
-          </div>
-          <button class="btn btn-danger" onclick="logoutUser()" style="width: 100%; margin-top: 8px;">Sair da Conta</button>
-        `;
-      } else {
-        container.innerHTML = `
-          <button class="btn btn-primary" onclick="loginWithGoogle()" style="margin-top: 0; background: #4285f4; color: white; width: 100%;">
-            🔑 Entrar com Google
-          </button>
-        `;
-      }
-    }
-
-    function syncFromFirebase(uid) {
-      const userDocRef = window.doc(window.firebaseDb, "users", uid);
-      window.onSnapshot(userDocRef, (docSnap) => {
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          transactions = data.transactions || [];
-          recurringRules = data.recurringRules || [];
-          saveData(false);
-          updateUI();
-        } else {
-          saveData(true);
-        }
-      });
-    }
-
-    function saveData(syncCloud = true) {
-      localStorage.setItem('transactions', JSON.stringify(transactions));
-      localStorage.setItem('recurringRules', JSON.stringify(recurringRules));
-
-      if (currentUser && syncCloud && window.setDoc) {
-        const userDocRef = window.doc(window.firebaseDb, "users", currentUser.uid);
-        window.setDoc(userDocRef, {
-          transactions,
-          recurringRules,
-          updatedAt: new Date().toISOString()
-        }, { merge: true });
-      }
     }
 
     function toggleSidebar() {
@@ -1086,7 +1139,6 @@
       container.innerHTML = '';
       recurringRules.forEach(rule => {
         const div = document.createElement('div');
-        div.className = 'rule-item';
         div.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:12px; border:1px solid var(--border); border-radius:var(--radius); margin-bottom:8px; background:var(--bg);";
         
         const typeTxt = rule.type === 'installment' ? `${rule.installments}x` : 'Fixo Indefinido';
@@ -1220,6 +1272,8 @@
     }
 
     function updateUI() {
+      if (!currentUser) return;
+
       const selectedMonth = document.getElementById('month-picker').value;
       const searchTerm = (document.getElementById('search-input').value || '').toLowerCase();
 
@@ -1316,32 +1370,25 @@
         }
       });
 
-      // Atualiza Valores do Resumo
       document.getElementById('total-income').textContent = formatCurrency(income);
       document.getElementById('total-expense').textContent = formatCurrency(expense);
       document.getElementById('total-balance').textContent = formatCurrency(income - expense);
 
-      // Atualiza KPIs & Feedback Inteligente
       calculateAnalytics(income, expense, categoryTotals);
-
-      // Atualiza Gráfico
       updateChart(categoryTotals);
     }
 
     function calculateAnalytics(income, expense, categoryTotals) {
-      // Taxa de Poupança
       let savingsRate = 0;
       if (income > 0) {
         savingsRate = Math.max(0, ((income - expense) / income) * 100);
       }
       document.getElementById('kpi-savings-rate').textContent = `${savingsRate.toFixed(1)}%`;
 
-      // Média Diária de Gastos
       const daysInMonth = 30;
       const dailyAvg = expense / daysInMonth;
       document.getElementById('kpi-daily-avg').textContent = formatCurrency(dailyAvg);
 
-      // Maior Ofensor
       let topCategory = '-';
       let maxVal = 0;
       for (const [cat, val] of Object.entries(categoryTotals)) {
@@ -1352,10 +1399,8 @@
       }
       document.getElementById('kpi-top-category').textContent = topCategory;
 
-      // Gerador de Feedback Inteligente
       const feedbackBox = document.getElementById('feedback-container');
       feedbackBox.innerHTML = '';
-
       const feedbacks = [];
 
       if (income === 0 && expense === 0) {
