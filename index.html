@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Finanzzas v7.0 - Gerenciador Financeiro</title>
+  <title>Finanzzas v7.1 - Gerenciador Financeiro</title>
 
   <!-- Conexão PWA Manifest & Ícones -->
   <link rel="manifest" href="manifest.json">
@@ -195,7 +195,7 @@
       -webkit-text-fill-color: transparent;
     }
 
-    /* Input Mês Estilizado e Legível no Desktop */
+    /* Input Mês Estilizado */
     input[type="month"] {
       appearance: none;
       -webkit-appearance: none;
@@ -322,7 +322,7 @@
       border-radius: var(--radius);
     }
 
-    /* Correção do Diagnóstico Financeiro em Dispositivos Móveis */
+    /* Correção do Diagnóstico Financeiro em Mobile (Sem quebra de letras) */
     .feedback-box {
       background: rgba(0, 255, 234, 0.05);
       border: 1px solid rgba(0, 255, 234, 0.2);
@@ -331,7 +331,7 @@
       margin-top: 10px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
       width: 100%;
       box-sizing: border-box;
     }
@@ -798,7 +798,7 @@
       </div>
     </header>
 
-    <!-- Barra de Mês (Automático + Estilizado para Desktop) -->
+    <!-- Barra de Mês -->
     <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
       <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
         <label for="month-picker" style="font-size: 0.85rem; font-weight: 600;">Mês:</label>
@@ -1732,6 +1732,7 @@
         item.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         feedbackBox.appendChild(item);
       });
+    }
 
     function updateChart(categoryTotals) {
       const ctx = document.getElementById('expenseChart').getContext('2d');
