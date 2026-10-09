@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Finanzzas v10.0 - Gerenciador Financeiro</title>
+  <title>Finanzzas v11.0 - Gerenciador Financeiro Pessoal</title>
 
   <!-- Conexão PWA Manifest & Ícones -->
   <link rel="manifest" href="manifest.json">
@@ -26,8 +26,6 @@
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <!-- html2pdf.js para Geração de Extrato PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <!-- Tesseract.js para OCR de Comprovantes Bancários -->
-  <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
 
   <!-- Firebase SDKs (v10.8.0 Modulares) -->
   <script type="module">
@@ -121,7 +119,6 @@
       gap: 16px;
     }
 
-    /* Forced Login Screen */
     .login-screen {
       display: flex;
       flex-direction: column;
@@ -233,7 +230,6 @@
       cursor: pointer;
     }
 
-    /* Redesign Hero Card dos Saldos (Estilo Mobile Clean / Fintech) */
     .hero-balance-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
@@ -304,7 +300,6 @@
       font-weight: 600;
     }
 
-    /* Bottom Dock Flutuante */
     .bottom-dock-overlay {
       position: fixed;
       bottom: 0; left: 0; right: 0;
@@ -443,6 +438,7 @@
     .badge-paid { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
     .badge-pending { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
     .badge-recurring { background: rgba(0, 255, 234, 0.15); color: var(--primary); border: 1px solid rgba(0, 255, 234, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; margin-left: 4px; }
+    .badge-pro { background: linear-gradient(135deg, #f59e0b, #ec4899); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 800; }
 
     .text-success { color: var(--success); }
     .text-danger { color: var(--danger); }
@@ -472,6 +468,7 @@
     .btn-secondary { background: #059669; color: white; border-radius: var(--radius); }
     .btn-info { background: #3b82f6; color: white; border-radius: var(--radius); }
     .btn-danger { background: var(--danger); color: white; border-radius: var(--radius); }
+    .btn-pro { background: linear-gradient(135deg, #f59e0b, #ec4899); color: white; font-weight: 800; }
 
     .btn-large-action {
       width: 100%;
@@ -574,11 +571,6 @@
       transition: border-color 0.2s, color 0.2s;
     }
 
-    .custom-file-label:hover {
-      border-color: var(--primary);
-      color: var(--text);
-    }
-
     /* Modais */
     .modal-overlay {
       position: fixed;
@@ -629,10 +621,9 @@
     }
     input:focus, select:focus { border-color: var(--primary); }
 
-    .action-sub-row { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
-    .recurring-trigger-btn { background: #3b82f6; color: white; border: none; font-size: 0.8rem; padding: 10px 12px; border-radius: var(--radius); cursor: pointer; flex: 1; font-weight: 700; }
-    .qr-scan-btn { background: #8b5cf6; color: white; border: none; font-size: 0.8rem; padding: 10px 12px; border-radius: var(--radius); cursor: pointer; flex: 1; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; }
-    .receipt-upload-btn { background: #10b981; color: white; border: none; font-size: 0.8rem; padding: 10px 12px; border-radius: var(--radius); cursor: pointer; flex: 1; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .action-sub-row { display: flex; gap: 8px; margin-top: 6px; }
+    .recurring-trigger-btn { background: #3b82f6; color: white; border: none; font-size: 0.85rem; padding: 10px 12px; border-radius: var(--radius); cursor: pointer; flex: 1; font-weight: 700; }
+    .qr-scan-btn { background: #8b5cf6; color: white; border: none; font-size: 0.85rem; padding: 10px 12px; border-radius: var(--radius); cursor: pointer; flex: 1; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; }
     .emergency-btn { background: #f59e0b; color: #0f172a; border: none; font-size: 0.85rem; padding: 12px; border-radius: var(--radius); cursor: pointer; width: 100%; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 4px; }
 
     .view-toggle-btns { display: flex; gap: 4px; background: var(--input-bg); padding: 3px; border-radius: var(--radius); border: 1px solid var(--border); }
@@ -662,7 +653,7 @@
 </head>
 <body>
 
-  <!-- TELA DE FORCED LOGIN -->
+  <!-- TELA DE LOGIN -->
   <div id="auth-lock-screen" class="login-screen">
     <div class="login-box">
       <img src="icon-512.png" class="login-logo" alt="Finanzzas Logo">
@@ -684,10 +675,9 @@
 
   <!-- CONTEÚDO PRINCIPAL -->
   <div id="app-main-content" class="container hidden">
-    <!-- Overlay Sidebar -->
     <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
 
-    <!-- Aba Lateral (Sidebar) -->
+    <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
       <div>
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 14px;">
@@ -703,8 +693,22 @@
           <div id="auth-status-container"></div>
         </div>
 
+        <!-- Card Promocional do Plano PRO -->
+        <div class="sidebar-section" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(236, 72, 153, 0.1)); border: 1px solid rgba(245, 158, 11, 0.3);">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.85rem; font-weight: 800; color: #f59e0b;">⭐ Plano Pro</span>
+            <span id="user-plan-badge" class="badge badge-paid">GRÁTIS</span>
+          </div>
+          <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">
+            Desbloqueie extratos em PDF ilimitados, agendamentos ilimitados e o Botão de Emergência!
+          </p>
+          <button class="btn btn-pro" style="width: 100%; border-radius: var(--radius); padding: 10px; margin-top: 6px;" onclick="openPaywallModal('Seja Pro')">
+            🚀 Sejo Pro por R$ 9,90
+          </button>
+        </div>
+
         <div class="sidebar-section">
-          <span class="sidebar-section-title">⚙️ Configurações & Lembretes</span>
+          <span class="sidebar-section-title">⚙️ Configurações</span>
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <span style="font-size: 0.85rem;">Aparência:</span>
             <select id="theme-selector" onchange="setTheme(this.value)" style="font-size: 0.8rem; padding: 6px 10px;">
@@ -715,17 +719,12 @@
           <button class="btn btn-info" style="width: 100%; border-radius: var(--radius); padding: 10px; margin-top: 4px;" onclick="toggleSidebar(); openCategoriesModal();">
             🏷️ Gerenciar Categorias
           </button>
-          
-          <!-- Botão Temporário de Teste de Notificação -->
-          <button class="btn btn-warning" style="width: 100%; border-radius: var(--radius); padding: 10px; margin-top: 4px; background: #f59e0b; color: #0f172a;" onclick="testPushNotification()">
-            🧪 Testar Notificação (21h)
-          </button>
         </div>
 
         <div class="sidebar-section">
           <span class="sidebar-section-title">💾 Backup & Exportação</span>
-          <button class="btn btn-info" style="width: 100%; border-radius: var(--radius); padding: 10px; background:#8b5cf6;" onclick="togglePdfModal()">
-            📄 Extrato Mensal (.PDF)
+          <button class="btn btn-info" style="width: 100%; border-radius: var(--radius); padding: 10px; background:#8b5cf6;" onclick="checkProFeature(() => togglePdfModal(), 'Gerar Extrato em PDF')">
+            📄 Extrato Mensal (.PDF) ⭐
           </button>
           <button class="btn btn-secondary" style="width: 100%; border-radius: var(--radius); padding: 10px;" onclick="exportToCSV()">
             📊 Exportar Relatório .CSV
@@ -751,6 +750,38 @@
         <button class="btn btn-primary" onclick="openInExternalBrowser()" style="width: 100%; margin-top: 0; background: var(--card-bg); color: var(--text); border: 1px solid var(--border);">
           🌐 Abrir no Navegador
         </button>
+      </div>
+    </div>
+
+    <!-- Modal Paywall (Seja PRO) -->
+    <div class="modal-overlay" id="paywall-modal">
+      <div class="modal">
+        <div class="modal-header-sticky">
+          <h3 style="color: #f59e0b;">⭐ Desbloqueie o Finanzzas Pro</h3>
+          <button class="close-circle-btn" onclick="togglePaywallModal()">✕</button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 14px; text-align: center; padding-top: 10px;">
+          <p id="paywall-feature-reason" style="font-size: 0.9rem; color: var(--text); font-weight: 700;">
+            Acesse recursos ilimitados para organizar sua vida financeira!
+          </p>
+
+          <div style="background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; text-align: left; display: flex; flex-direction: column; gap: 10px; font-size: 0.85rem;">
+            <div>✅ <strong>Extrato Mensal em PDF</strong> ilimitado</div>
+            <div>✅ <strong>Agendamento de Parcelas & Fixos</strong> ilimitados</div>
+            <div>✅ <strong>Botão de Emergência</strong> para ajuste rápido de saldo</div>
+            <div>✅ <strong>Scanner DANFE via QR Code</strong> ilimitado</div>
+            <div>✅ <strong>Categorias Personalizadas</strong> ilimitadas</div>
+          </div>
+
+          <div style="margin-top: 8px;">
+            <p style="font-size: 1.4rem; font-weight: 900; color: var(--primary);">R$ 9,90 <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">/mês</span></p>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">Cancele quando quiser. Sem fidelidade.</p>
+          </div>
+
+          <a href="https://mpago.la/SEU_LINK_DE_PAGAMENTO" target="_blank" class="btn btn-pro btn-large-action" style="text-decoration: none;">
+            💳 Assinar Agora por R$ 9,90
+          </a>
+        </div>
       </div>
     </div>
 
@@ -868,25 +899,17 @@
             </div>
 
             <!-- Botão de emergência destacado -->
-            <button type="button" class="emergency-btn" onclick="toggleAddModal(); toggleEmergencyModal();">
-              🚨 Esqueceu Gastos? Ajuste Rápido de Saldo
+            <button type="button" class="emergency-btn" onclick="checkProFeature(() => { toggleAddModal(); toggleEmergencyModal(); }, 'Botão de Emergência')">
+              🚨 Esqueceu Gastos? Ajuste Rápido ⭐
             </button>
 
             <div class="action-sub-row">
-              <button type="button" class="qr-scan-btn" onclick="startQrScanner('quick')">📷 Ler DANFE</button>
-
-              <!-- Upload / Leitor OCR de Comprovante Bancário -->
-              <label class="receipt-upload-btn">
-                <span>📄 Ler Comprovante</span>
-                <input type="file" accept="image/*" onchange="processReceiptOCR(this)" style="display:none;">
-              </label>
-
+              <button type="button" class="qr-scan-btn" onclick="checkProFeature(() => startQrScanner('quick'), 'Scanner de DANFE')">📷 Ler DANFE ⭐</button>
               <button type="button" class="recurring-trigger-btn" onclick="toggleAddModal(); toggleRecurringModal();">📌 Agendar Fixos</button>
             </div>
 
             <input type="hidden" id="quick-danfe-url">
             <span id="quick-danfe-status" style="font-size: 0.75rem; color: var(--primary);"></span>
-            <span id="ocr-status-msg" style="font-size: 0.75rem; color: var(--primary);"></span>
 
             <button type="submit" class="btn btn-primary" style="margin-top: 4px;">Salvar Lançamento</button>
           </div>
@@ -894,7 +917,7 @@
       </div>
     </div>
 
-    <!-- Modal Detalhes & Edição Reformado -->
+    <!-- Modal Detalhes & Edição -->
     <div class="modal-overlay" id="detail-modal">
       <div class="modal">
         <div class="modal-header-sticky">
@@ -1118,7 +1141,7 @@
     </div>
   </div>
 
-  <!-- Dock Flutuante com Botão "+" -->
+  <!-- Dock Flutuante -->
   <div id="bottom-dock-container" class="bottom-dock-overlay hidden">
     <div class="bottom-dock">
       <button class="dock-btn active" id="dock-home" onclick="switchTab('home')">
@@ -1137,6 +1160,7 @@
     let transactions = [];
     let recurringRules = [];
     let customCategories = ["Alimentação", "Transporte", "Moradia", "Lazer", "Trabalho", "Outros"];
+    let userPlan = 'free'; // 'free' ou 'pro'
     
     let currentViewMode = localStorage.getItem('viewMode') || 'tiles';
     let hideValues = localStorage.getItem('hideValues') === 'true';
@@ -1168,13 +1192,6 @@
       setViewMode(currentViewMode);
       updatePrivacyUI();
       setTheme(currentTheme);
-      requestNotificationPermission();
-
-      // Checa se abriu via Web Shortcut ou Web Share Target
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('action') === 'add') {
-        setTimeout(() => toggleAddModal(), 500);
-      }
 
       const checkFirebaseInterval = setInterval(() => {
         if (window.firebaseAuth) {
@@ -1199,71 +1216,25 @@
       }, 200);
     });
 
-    /* Notificações Push Locais (21h) */
-    function requestNotificationPermission() {
-      if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
-        Notification.requestPermission();
-      }
-    }
-
-    function testPushNotification() {
-      if ("Notification" in window && Notification.permission === "granted") {
-        const notif = new Notification("Finanzzas 🔔", {
-          body: "Passando para lembrar: registrou suas partidas de hoje no Finanzzas?",
-          icon: "icon-192.png"
-        });
-        notif.onclick = function() {
-          window.focus();
-          toggleAddModal();
-        };
+    /* Trava do Modelo Freemium / Paywall */
+    function checkProFeature(actionCallback, featureName) {
+      if (userPlan === 'pro') {
+        actionCallback();
       } else {
-        alert("Notificações desativadas ou não suportadas neste navegador.");
+        openPaywallModal(featureName);
       }
     }
 
-    /* Processamento OCR de Comprovantes Bancários via Tesseract.js */
-    async function processReceiptOCR(input) {
-      const file = input.files[0];
-      if (!file) return;
-
-      const statusMsg = document.getElementById('ocr-status-msg');
-      statusMsg.textContent = "⏳ Lendo comprovante bancário com OCR...";
-
-      try {
-        const worker = await Tesseract.createWorker('por');
-        const ret = await worker.recognize(file);
-        await worker.terminate();
-
-        const text = ret.data.text;
-        
-        // Expressão regular para capturar Valores em R$
-        const valueMatch = text.match(/R\$\s*([\d\.\,]+)/i) || text.match(/Valor[\:\s]+([\d\.\,]+)/i);
-        if (valueMatch) {
-          const rawVal = valueMatch[1].replace('.', '').replace(',', '.');
-          const valNum = parseFloat(rawVal);
-          if (!isNaN(valNum)) {
-            document.getElementById('quick-amount').value = valNum.toFixed(2);
-          }
-        }
-
-        // Tenta encontrar a descrição/destinatário
-        const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-        let foundDesc = "Comprovante Banco";
-        for (let l of lines) {
-          if (l.toLowerCase().includes("para") || l.toLowerCase().includes("nome") || l.toLowerCase().includes("recebedor")) {
-            foundDesc = l.replace(/para|nome|recebedor|\:/gi, '').trim();
-            break;
-          }
-        }
-
-        document.getElementById('quick-desc').value = foundDesc || "Comprovante Pix";
-        statusMsg.textContent = "✅ Dados extraídos do comprovante com sucesso!";
-      } catch (err) {
-        statusMsg.textContent = "⚠️ Não foi possível ler o comprovante automaticamente.";
-      }
+    function openPaywallModal(reason) {
+      document.getElementById('paywall-feature-reason').textContent = `A funcionalidade "${reason}" é exclusiva do Plano Pro.`;
+      document.getElementById('paywall-modal').classList.add('open');
     }
 
-    /* Modal Botão de Emergência (Reconciliação Rápida de Saldo) */
+    function togglePaywallModal() {
+      document.getElementById('paywall-modal').classList.toggle('open');
+    }
+
+    /* Modal Botão de Emergência */
     function toggleEmergencyModal() {
       document.getElementById('emergency-modal').classList.toggle('open');
     }
@@ -1421,6 +1392,11 @@
       e.preventDefault();
       const input = document.getElementById('new-cat-input');
       const newCat = input.value.trim();
+
+      if (userPlan === 'free' && customCategories.length >= 8) {
+        openPaywallModal('Categorias Personalizadas Ilimitadas');
+        return;
+      }
 
       if (newCat && !customCategories.includes(newCat)) {
         customCategories.push(newCat);
@@ -1586,7 +1562,6 @@
       saveData();
       document.getElementById('quick-expense-form').reset();
       document.getElementById('quick-danfe-status').textContent = '';
-      document.getElementById('ocr-status-msg').textContent = '';
       toggleAddModal();
       updateUI();
     }
@@ -1691,6 +1666,7 @@
           const data = docSnap.data();
           transactions = data.transactions || [];
           recurringRules = data.recurringRules || [];
+          userPlan = data.plan || 'free';
           if (data.customCategories && Array.isArray(data.customCategories)) {
             customCategories = data.customCategories;
           }
@@ -1710,6 +1686,7 @@
           transactions,
           recurringRules,
           customCategories,
+          plan: userPlan,
           updatedAt: new Date().toISOString()
         }, { merge: true });
       }
@@ -1718,6 +1695,13 @@
     function updateAuthUI() {
       const container = document.getElementById('auth-status-container');
       const welcomeTitle = document.getElementById('user-welcome-title');
+      const planBadge = document.getElementById('user-plan-badge');
+
+      if (planBadge) {
+        planBadge.textContent = userPlan === 'pro' ? 'PRO ⭐' : 'GRÁTIS';
+        planBadge.className = userPlan === 'pro' ? 'badge badge-pro' : 'badge badge-paid';
+      }
+
       if (currentUser) {
         let rawName = currentUser.displayName ? currentUser.displayName.split(' ')[0] : 'Usuário';
         let firstName = rawName.charAt(0).toUpperCase() + rawName.slice(1).toLowerCase();
@@ -1729,7 +1713,7 @@
             <img src="${currentUser.photoURL}" style="width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--primary);" alt="Avatar">
             <div style="flex: 1; overflow: hidden;">
               <strong style="font-size: 0.85rem; display: block; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${currentUser.displayName}</strong>
-              <small style="font-size: 0.72rem; color: var(--primary);">☁️ Conta Conectada</small>
+              <small style="font-size: 0.72rem; color: var(--primary);">☁️ Conta ${userPlan === 'pro' ? 'PRO ⭐' : 'Grátis'}</small>
             </div>
           </div>
           <button class="btn btn-danger" onclick="logoutUser()" style="width: 100%; margin-top: 6px; padding: 8px; font-size: 0.8rem;">🔒 Sair da Conta</button>
@@ -1791,6 +1775,11 @@
 
     function addRecurringExpense(e) {
       e.preventDefault();
+      if (userPlan === 'free' && recurringRules.length >= 3) {
+        openPaywallModal('Agendamentos e Parcelas Ilimitadas');
+        return;
+      }
+
       const desc = document.getElementById('rec-desc').value;
       const amount = parseFloat(document.getElementById('rec-amount').value);
       const day = parseInt(document.getElementById('rec-day').value);
