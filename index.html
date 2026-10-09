@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Finanzzas v8.5 - Gerenciador Financeiro</title>
+  <title>Finanzzas v9.0 - Gerenciador Financeiro</title>
 
   <!-- Conexão PWA Manifest & Ícones -->
   <link rel="manifest" href="manifest.json">
@@ -231,6 +231,77 @@
       cursor: pointer;
     }
 
+    /* Redesign Hero Card dos Saldos (Estilo Mobile Clean / Fintech) */
+    .hero-balance-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px 18px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-balance-title {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .hero-balance-value {
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: var(--primary);
+      text-shadow: 0 0 20px rgba(0, 255, 234, 0.3);
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+    }
+
+    .hero-subrow {
+      display: flex;
+      justify-content: space-around;
+      width: 100%;
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+      margin-top: 4px;
+    }
+
+    .hero-subitem {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .hero-subitem span {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .hero-subitem p {
+      font-size: 1.1rem;
+      font-weight: 800;
+    }
+
+    .previous-balance-badge {
+      font-size: 0.75rem;
+      color: var(--primary);
+      background: rgba(0, 255, 234, 0.08);
+      border: 1px dashed rgba(0, 255, 234, 0.3);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+
     /* Bottom Dock Flutuante */
     .bottom-dock-overlay {
       position: fixed;
@@ -319,13 +390,6 @@
     }
 
     .card h3 { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-    .card p { font-size: 1.3rem; font-weight: 800; }
-
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 10px;
-    }
 
     .kpi-grid {
       display: grid;
@@ -364,9 +428,7 @@
       width: 100%;
     }
 
-    .feedback-item strong {
-      color: var(--primary);
-    }
+    .feedback-item strong { color: var(--primary); }
 
     .badge {
       padding: 4px 10px;
@@ -408,6 +470,22 @@
     .btn-secondary { background: #059669; color: white; border-radius: var(--radius); }
     .btn-info { background: #3b82f6; color: white; border-radius: var(--radius); }
     .btn-danger { background: var(--danger); color: white; border-radius: var(--radius); }
+
+    /* Botões Grandes e Reformados para Edição e Ações */
+    .btn-large-action {
+      width: 100%;
+      padding: 14px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
 
     .close-circle-btn {
       background: #ef4444;
@@ -577,9 +655,7 @@
     #qr-reader { width: 100%; border-radius: var(--radius); overflow: hidden; margin-top: 10px; border: 1px solid var(--border); }
 
     /* Estilização oculta do Template do PDF para impressão limpa */
-    #pdf-template-wrapper {
-      display: none;
-    }
+    #pdf-template-wrapper { display: none; }
   </style>
 </head>
 <body>
@@ -634,6 +710,9 @@
               <option value="light">☀️ Claro</option>
             </select>
           </div>
+          <button class="btn btn-info" style="width: 100%; border-radius: var(--radius); padding: 10px; margin-top: 4px;" onclick="toggleSidebar(); openCategoriesModal();">
+            🏷️ Gerenciar Categorias
+          </button>
         </div>
 
         <div class="sidebar-section">
@@ -665,6 +744,28 @@
         <button class="btn btn-primary" onclick="openInExternalBrowser()" style="width: 100%; margin-top: 0; background: var(--card-bg); color: var(--text); border: 1px solid var(--border);">
           🌐 Abrir no Navegador
         </button>
+      </div>
+    </div>
+
+    <!-- Modal Gerenciador de Categorias Dinâmicas -->
+    <div class="modal-overlay" id="categories-modal">
+      <div class="modal">
+        <div class="modal-header-sticky">
+          <h3>🏷️ Gerenciar Categorias</h3>
+          <button class="close-circle-btn" onclick="toggleCategoriesModal()">✕</button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <form onsubmit="addNewCategory(event)" style="display: flex; gap: 8px;">
+            <input type="text" id="new-cat-input" placeholder="Nova categoria (ex: Viagem - SP)" required style="flex: 1;">
+            <button type="submit" class="btn btn-secondary" style="padding: 10px 16px;">Adicionar</button>
+          </form>
+
+          <p style="font-size: 0.78rem; color: var(--text-muted);">
+            Obs: Se excluir uma categoria com lançamentos vinculados, eles serão automaticamente redirecionados para "Outros".
+          </p>
+
+          <div id="categories-list-container" style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;"></div>
+        </div>
       </div>
     </div>
 
@@ -732,14 +833,7 @@
             </div>
             <div>
               <label style="font-size: 0.8rem; font-weight: 600;">Categoria</label>
-              <select id="quick-category" style="width: 100%;">
-                <option value="Alimentação">Alimentação</option>
-                <option value="Transporte">Transporte</option>
-                <option value="Moradia">Moradia</option>
-                <option value="Lazer">Lazer</option>
-                <option value="Trabalho">Trabalho</option>
-                <option value="Outros">Outros</option>
-              </select>
+              <select id="quick-category" onchange="handleCategorySelectChange(this)" style="width: 100%;"></select>
             </div>
             <div class="action-sub-row">
               <button type="button" class="qr-scan-btn" onclick="startQrScanner('quick')">📷 Ler DANFE</button>
@@ -753,14 +847,14 @@
       </div>
     </div>
 
-    <!-- Modal Detalhes & Edição -->
+    <!-- Modal Detalhes & Edição Reformado -->
     <div class="modal-overlay" id="detail-modal">
       <div class="modal">
         <div class="modal-header-sticky">
           <h3>📄 Detalhes do Registro</h3>
           <button class="close-circle-btn" onclick="toggleDetailModal()">✕</button>
         </div>
-        <div id="detail-modal-body" style="display: flex; flex-direction: column; gap: 12px;"></div>
+        <div id="detail-modal-body" style="display: flex; flex-direction: column; gap: 14px;"></div>
       </div>
     </div>
 
@@ -809,14 +903,7 @@
               </div>
               <div>
                 <label style="font-size: 0.8rem; font-weight: 600;">Categoria</label>
-                <select id="rec-category" style="width: 100%;">
-                  <option value="Moradia">Moradia</option>
-                  <option value="Alimentação">Alimentação</option>
-                  <option value="Transporte">Transporte</option>
-                  <option value="Lazer">Lazer</option>
-                  <option value="Trabalho">Trabalho</option>
-                  <option value="Outros">Outros</option>
-                </select>
+                <select id="rec-category" onchange="handleCategorySelectChange(this)" style="width: 100%;"></select>
               </div>
             </div>
             <button type="submit" class="btn btn-primary" style="margin-top: 6px;">Agendar Projeção</button>
@@ -848,28 +935,37 @@
       <input type="month" id="month-picker" onchange="updateUI()">
     </div>
 
-    <!-- TELA 1: INÍCIO (ESTILO FINTECH CLEAN) -->
+    <!-- TELA 1: INÍCIO (HERO MOBILE REDESIGNED) -->
     <div id="tab-home" class="tab-view">
       <div class="greeting-card">
         <h2 id="user-welcome-title">Olá! 👋</h2>
         <p>Seus números de hoje são:</p>
       </div>
 
-      <div class="summary-grid">
-        <div class="card">
-          <h3>Receitas</h3>
-          <p id="total-income" class="text-success">R$ 0,00</p>
+      <!-- Hero Card de Saldos com Saldo Final em Destaque Grande + Sombra -->
+      <div class="hero-balance-card">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+          <span class="hero-balance-title">Saldo Final Restante</span>
+          <p id="total-balance" class="hero-balance-value">R$ 0,00</p>
+          <div id="previous-balance-badge" class="previous-balance-badge hidden">
+            <span>Inclui R$ 0,00 acumulados do mês anterior</span>
+          </div>
         </div>
-        <div class="card">
-          <h3>Despesas</h3>
-          <p id="total-expense" class="text-danger">R$ 0,00</p>
-        </div>
-        <div class="card">
-          <h3>Saldo Final</h3>
-          <p id="total-balance" class="text-primary">R$ 0,00</p>
+
+        <div class="hero-subrow">
+          <div class="hero-subitem">
+            <span>Receitas (Entradas)</span>
+            <p id="total-income" class="text-success">R$ 0,00</p>
+          </div>
+          <div style="width: 1px; background: var(--border);"></div>
+          <div class="hero-subitem">
+            <span>Despesas (Saídas)</span>
+            <p id="total-expense" class="text-danger">R$ 0,00</p>
+          </div>
         </div>
       </div>
 
+      <!-- Histórico Mensal -->
       <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
           <h3>Histórico de Partidas</h3>
@@ -910,15 +1006,7 @@
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
           <div>
             <label style="font-size: 0.75rem; color: var(--text-muted);">Categoria</label>
-            <select id="filter-category" onchange="updateUI()" style="width: 100%; font-size: 0.85rem; padding: 8px;">
-              <option value="ALL">Todas</option>
-              <option value="Alimentação">Alimentação</option>
-              <option value="Transporte">Transporte</option>
-              <option value="Moradia">Moradia</option>
-              <option value="Lazer">Lazer</option>
-              <option value="Trabalho">Trabalho</option>
-              <option value="Outros">Outros</option>
-            </select>
+            <select id="filter-category" onchange="updateUI()" style="width: 100%; font-size: 0.85rem; padding: 8px;"></select>
           </div>
           <div>
             <label style="font-size: 0.75rem; color: var(--text-muted);">Tipo</label>
@@ -1003,7 +1091,6 @@
   <!-- TEMPLATE IMPRESSÃO PDF EXTRATO -->
   <div id="pdf-template-wrapper">
     <div id="pdf-content" style="padding: 24px; font-family: sans-serif; color: #0f172a; background: #ffffff;">
-      <!-- Cabeçalho -->
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00c4b4; padding-bottom: 12px; margin-bottom: 20px;">
         <div style="display: flex; align-items: center; gap: 10px;">
           <img src="icon-192.png" style="width: 40px; height: 40px; border-radius: 8px;" alt="Logo">
@@ -1018,7 +1105,6 @@
         </div>
       </div>
 
-      <!-- Info Cliente -->
       <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; font-size: 0.85rem;">
         <div>
           <strong>Cliente:</strong> <span id="pdf-user-name">-</span><br>
@@ -1029,7 +1115,6 @@
         </div>
       </div>
 
-      <!-- Resumo -->
       <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 24px;">
         <div style="background: #ecfdf5; border: 1px solid #a7f3d0; padding: 12px; border-radius: 8px; text-align: center;">
           <span style="font-size: 0.75rem; color: #047857; font-weight: bold; text-transform: uppercase;">Receitas</span>
@@ -1045,7 +1130,6 @@
         </div>
       </div>
 
-      <!-- Tabela -->
       <h4 style="font-size: 0.9rem; text-transform: uppercase; color: #475569; margin-bottom: 10px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px;">
         Detalhamento das Partidas
       </h4>
@@ -1063,7 +1147,6 @@
         <tbody id="pdf-table-body"></tbody>
       </table>
 
-      <!-- Rodapé -->
       <div style="margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 10px; text-align: center; font-size: 0.7rem; color: #94a3b8;">
         Documento gerado automaticamente pela plataforma Finanzzas PWA.
       </div>
@@ -1073,6 +1156,8 @@
   <script>
     let transactions = [];
     let recurringRules = [];
+    let customCategories = ["Alimentação", "Transporte", "Moradia", "Lazer", "Trabalho", "Outros"];
+    
     let currentViewMode = localStorage.getItem('viewMode') || 'tiles';
     let hideValues = localStorage.getItem('hideValues') === 'true';
     let currentTheme = localStorage.getItem('appTheme') || 'dark';
@@ -1162,11 +1247,117 @@
       return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
 
+    /* Gestão de Categorias Dinâmicas */
+    function renderCategorySelects() {
+      const selects = [
+        document.getElementById('quick-category'),
+        document.getElementById('rec-category'),
+        document.getElementById('filter-category')
+      ];
+
+      selects.forEach(sel => {
+        if (!sel) return;
+        const currentVal = sel.value;
+        sel.innerHTML = '';
+
+        if (sel.id === 'filter-category') {
+          const optAll = document.createElement('option');
+          optAll.value = 'ALL';
+          optAll.textContent = 'Todas';
+          sel.appendChild(optAll);
+        }
+
+        customCategories.forEach(cat => {
+          const opt = document.createElement('option');
+          opt.value = cat;
+          opt.textContent = cat;
+          sel.appendChild(opt);
+        });
+
+        if (sel.id !== 'filter-category') {
+          const optEdit = document.createElement('option');
+          optEdit.value = 'EDIT_CATS';
+          optEdit.textContent = '⚙️ Editar Categorias...';
+          sel.appendChild(optEdit);
+        }
+
+        if (currentVal && customCategories.includes(currentVal)) {
+          sel.value = currentVal;
+        }
+      });
+    }
+
+    function handleCategorySelectChange(selectElem) {
+      if (selectElem.value === 'EDIT_CATS') {
+        openCategoriesModal();
+        selectElem.value = customCategories[0] || 'Outros';
+      }
+    }
+
+    function openCategoriesModal() {
+      renderCategoriesList();
+      document.getElementById('categories-modal').classList.add('open');
+    }
+
+    function toggleCategoriesModal() {
+      document.getElementById('categories-modal').classList.toggle('open');
+    }
+
+    function renderCategoriesList() {
+      const container = document.getElementById('categories-list-container');
+      container.innerHTML = '';
+
+      customCategories.forEach(cat => {
+        const item = document.createElement('div');
+        item.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); font-size:0.9rem;";
+
+        const isProtected = cat === 'Outros';
+        const deleteBtn = isProtected ? `<span style="font-size:0.75rem; color:var(--text-muted);">(Padrão)</span>` : `
+          <button class="close-circle-btn" style="width:24px; height:24px; font-size:0.75rem;" onclick="removeCategory('${cat}')">✕</button>
+        `;
+
+        item.innerHTML = `<span>${cat}</span> ${deleteBtn}`;
+        container.appendChild(item);
+      });
+    }
+
+    function addNewCategory(e) {
+      e.preventDefault();
+      const input = document.getElementById('new-cat-input');
+      const newCat = input.value.trim();
+
+      if (newCat && !customCategories.includes(newCat)) {
+        customCategories.push(newCat);
+        input.value = '';
+        saveData();
+        renderCategoriesList();
+        renderCategorySelects();
+        updateUI();
+      }
+    }
+
+    function removeCategory(catToRemove) {
+      if (catToRemove === 'Outros') return;
+      if (confirm(`Remover a categoria "${catToRemove}"? Lançamentos vinculados serão redirecionados para "Outros".`)) {
+        customCategories = customCategories.filter(c => c !== catToRemove);
+        
+        // Redireciona partidas da categoria excluída para "Outros"
+        transactions.forEach(t => {
+          if (t.category === catToRemove) t.category = 'Outros';
+        });
+
+        saveData();
+        renderCategoriesList();
+        renderCategorySelects();
+        updateUI();
+      }
+    }
+
     function togglePdfModal() {
       document.getElementById('pdf-modal').classList.toggle('open');
     }
 
-    /* Geração Profissional de PDF de Extrato Mensal */
+    /* Geração de Extrato Mensal PDF */
     function generatePDF() {
       const selectedMonth = document.getElementById('pdf-month-picker').value;
       const monthTransactions = transactions.filter(t => t.month === selectedMonth);
@@ -1176,18 +1367,13 @@
         return;
       }
 
-      // Formatação Mês/Ano
       const [year, month] = selectedMonth.split('-');
       const dateObj = new Date(year, month - 1, 1);
       const monthName = dateObj.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
 
       document.getElementById('pdf-meta-month').textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
       
-      // Nome com Primeira Letra Maiúscula
       let rawName = currentUser ? currentUser.displayName : 'Usuário';
-      let firstName = rawName ? rawName.split(' ')[0] : 'Usuário';
-      firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
-
       document.getElementById('pdf-user-name').textContent = rawName || '-';
       document.getElementById('pdf-user-email').textContent = currentUser ? currentUser.email : '-';
       document.getElementById('pdf-issue-date').textContent = new Date().toLocaleDateString('pt-BR');
@@ -1264,7 +1450,6 @@
       }
     }
 
-    /* Captura Transparente de GPS */
     function getAutoLocation() {
       return new Promise((resolve) => {
         if (!navigator.geolocation) {
@@ -1313,6 +1498,7 @@
       updateUI();
     }
 
+    /* Modal de Detalhes Reformado com Botões Grandes e Acessíveis */
     function openDetailModal(id) {
       const t = transactions.find(item => item.id === id);
       if (!t) return;
@@ -1322,53 +1508,57 @@
       const badgeText = isPaid ? 'Pago ✅' : 'Pendente ⏳';
 
       const danfeButton = t.danfeUrl ? `
-        <a href="${t.danfeUrl}" target="_blank" class="btn btn-info" style="text-decoration:none; margin-top:4px;">
-          📄 Ver Nota Fiscal na Receita (DANFE)
+        <a href="${t.danfeUrl}" target="_blank" class="btn btn-info btn-large-action" style="text-decoration:none;">
+          📄 Ver Nota Fiscal DANFE
         </a>
       ` : '';
 
       const body = document.getElementById('detail-modal-body');
+      
+      let optionsHtml = '';
+      customCategories.forEach(cat => {
+        optionsHtml += `<option value="${cat}" ${t.category === cat ? 'selected' : ''}>${cat}</option>`;
+      });
+
       body.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center;">
-          <h4 style="font-size: 1.1rem;">${t.desc}</h4>
+          <h4 style="font-size: 1.15rem; font-weight: 800;">${t.desc}</h4>
           <span class="badge ${badgeClass}" onclick="toggleStatus(${t.id}); openDetailModal(${t.id});">${badgeText}</span>
         </div>
 
-        <form id="edit-form" onsubmit="saveTransactionEdits(event, ${t.id})" style="background: var(--bg); padding: 12px; border-radius: var(--radius); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px;">
+        <form id="edit-form" onsubmit="saveTransactionEdits(event, ${t.id})" style="display: flex; flex-direction: column; gap: 12px;">
           <div>
-            <label style="font-size:0.75rem; color:var(--text-muted);">Descrição</label>
-            <input type="text" id="edit-desc" value="${t.desc}" required style="width:100%;">
+            <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted);">Descrição</label>
+            <input type="text" id="edit-desc" value="${t.desc}" required style="width:100%; margin-top:2px;">
           </div>
-          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
             <div>
-              <label style="font-size:0.75rem; color:var(--text-muted);">Valor (R$)</label>
-              <input type="number" step="0.01" id="edit-amount" value="${Math.abs(t.amount)}" required style="width:100%;">
+              <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted);">Valor (R$)</label>
+              <input type="number" step="0.01" id="edit-amount" value="${Math.abs(t.amount)}" required style="width:100%; margin-top:2px;">
             </div>
             <div>
-              <label style="font-size:0.75rem; color:var(--text-muted);">Tipo</label>
-              <select id="edit-type" style="width:100%;">
+              <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted);">Tipo</label>
+              <select id="edit-type" style="width:100%; margin-top:2px;">
                 <option value="expense" ${t.amount < 0 ? 'selected' : ''}>Despesa 🔴</option>
                 <option value="income" ${t.amount >= 0 ? 'selected' : ''}>Receita 🟢</option>
               </select>
             </div>
           </div>
           <div>
-            <label style="font-size:0.75rem; color:var(--text-muted);">Categoria</label>
-            <select id="edit-category" style="width:100%;">
-              <option value="Alimentação" ${t.category === 'Alimentação' ? 'selected' : ''}>Alimentação</option>
-              <option value="Transporte" ${t.category === 'Transporte' ? 'selected' : ''}>Transporte</option>
-              <option value="Moradia" ${t.category === 'Moradia' ? 'selected' : ''}>Moradia</option>
-              <option value="Lazer" ${t.category === 'Lazer' ? 'selected' : ''}>Lazer</option>
-              <option value="Trabalho" ${t.category === 'Trabalho' ? 'selected' : ''}>Trabalho</option>
-              <option value="Outros" ${t.category === 'Outros' ? 'selected' : ''}>Outros</option>
-            </select>
+            <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted);">Categoria</label>
+            <select id="edit-category" style="width:100%; margin-top:2px;">${optionsHtml}</select>
           </div>
-          <button type="submit" class="btn btn-secondary" style="margin-top:4px;">💾 Salvar Alterações</button>
+
+          <!-- Botão Grande de Salvar -->
+          <button type="submit" class="btn btn-secondary btn-large-action" style="margin-top: 8px;">
+            💾 Salvar Alterações
+          </button>
         </form>
 
         ${danfeButton}
 
-        <button class="btn btn-danger" onclick="deleteTransaction(${t.id}); toggleDetailModal();" style="width: 100%; margin-top: 4px;">
+        <!-- Botão Grande de Excluir -->
+        <button class="btn btn-danger btn-large-action" onclick="deleteTransaction(${t.id}); toggleDetailModal();">
           🗑️ Excluir Registro
         </button>
       `;
@@ -1411,6 +1601,10 @@
           const data = docSnap.data();
           transactions = data.transactions || [];
           recurringRules = data.recurringRules || [];
+          if (data.customCategories && Array.isArray(data.customCategories)) {
+            customCategories = data.customCategories;
+          }
+          renderCategorySelects();
           updateUI();
         } else {
           saveData(true);
@@ -1425,6 +1619,7 @@
         window.setDoc(userDocRef, {
           transactions,
           recurringRules,
+          customCategories,
           updatedAt: new Date().toISOString()
         }, { merge: true });
       }
@@ -1637,7 +1832,7 @@
 
     function exportDataJSON() {
       if (transactions.length === 0 && recurringRules.length === 0) { alert('Nenhum dado para exportar.'); return; }
-      const backupData = { transactions, recurringRules };
+      const backupData = { transactions, recurringRules, customCategories };
       const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -1660,11 +1855,15 @@
           if (replace) {
             transactions = imported.transactions || [];
             recurringRules = imported.recurringRules || [];
+            if (imported.customCategories) customCategories = imported.customCategories;
           } else {
             const existingIds = new Set(transactions.map(t => t.id));
             (imported.transactions || []).forEach(t => { if (!existingIds.has(t.id)) transactions.push(t); });
+            if (imported.customCategories) {
+              imported.customCategories.forEach(c => { if (!customCategories.includes(c)) customCategories.push(c); });
+            }
           }
-          saveData(); updateUI(); toggleSidebar(); alert('Dados importados com sucesso!');
+          saveData(); renderCategorySelects(); updateUI(); toggleSidebar(); alert('Dados importados com sucesso!');
           fileInput.value = '';
           document.getElementById('file-label').textContent = '📂 Escolher arquivo JSON';
         } catch (err) { alert('Erro ao importar JSON: ' + err.message); }
@@ -1679,6 +1878,25 @@
           attribution: 'Esri', maxZoom: 18
         }).addTo(mapInstance);
       }
+    }
+
+    /* Cálculo de Saldo Acumulado dos Meses Anteriores */
+    function calculateAccumulatedBalanceUntil(targetMonth) {
+      const uniqueMonths = [...new Set(transactions.map(t => t.month))].sort();
+      let accum = 0;
+
+      for (const m of uniqueMonths) {
+        if (m >= targetMonth) break;
+        const monthTs = transactions.filter(t => t.month === m);
+        let inc = 0, exp = 0;
+        monthTs.forEach(t => {
+          if (t.amount > 0) inc += t.amount;
+          else exp += Math.abs(t.amount);
+        });
+        accum += (inc - exp);
+      }
+
+      return accum;
     }
 
     function updateUI() {
@@ -1736,6 +1954,18 @@
         }
       });
 
+      // Saldo Anterior Acumulado
+      const prevBalance = calculateAccumulatedBalanceUntil(selectedMonth);
+      const totalBalanceWithPrev = prevBalance + globalIncome - globalExpense;
+
+      const badgeElem = document.getElementById('previous-balance-badge');
+      if (prevBalance !== 0) {
+        badgeElem.classList.remove('hidden');
+        badgeElem.querySelector('span').textContent = `Inclui ${formatCurrency(prevBalance)} acumulados de meses anteriores`;
+      } else {
+        badgeElem.classList.add('hidden');
+      }
+
       if (mapInstance) {
         mapMarkers.forEach(m => mapInstance.removeLayer(m));
         mapMarkers = [];
@@ -1792,7 +2022,7 @@
 
       document.getElementById('total-income').textContent = formatCurrency(globalIncome);
       document.getElementById('total-expense').textContent = formatCurrency(globalExpense);
-      document.getElementById('total-balance').textContent = formatCurrency(globalIncome - globalExpense);
+      document.getElementById('total-balance').textContent = formatCurrency(totalBalanceWithPrev);
 
       calculateAnalytics(globalIncome, globalExpense, globalCategoryTotals);
 
@@ -1871,7 +2101,7 @@
           labels: labels.length ? labels : ['Sem despesas'],
           datasets: [{
             data: data.length ? data : [1],
-            backgroundColor: ['#ef4444', '#00ffea', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899']
+            backgroundColor: ['#ef4444', '#00ffea', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899', '#3b82f6', '#f43f5e']
           }]
         },
         options: {
