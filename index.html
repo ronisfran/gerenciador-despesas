@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Finanzzas v9.1 - Gerenciador Financeiro</title>
+  <title>Finanzzas v10.0 - Gerenciador Financeiro</title>
 
   <!-- Conexão PWA Manifest & Ícones -->
   <link rel="manifest" href="manifest.json">
@@ -26,6 +26,8 @@
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <!-- html2pdf.js para Geração de Extrato PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- Tesseract.js para OCR de Comprovantes Bancários -->
+  <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
 
   <!-- Firebase SDKs (v10.8.0 Modulares) -->
   <script type="module">
@@ -627,9 +629,11 @@
     }
     input:focus, select:focus { border-color: var(--primary); }
 
-    .action-sub-row { display: flex; gap: 8px; margin-top: 6px; }
-    .recurring-trigger-btn { background: #3b82f6; color: white; border: none; font-size: 0.85rem; padding: 10px 12px; border-radius: var(--radius); cursor: pointer; flex: 1; font-weight: 700; }
-    .qr-scan-btn { background: #8b5cf6; color: white; border: none; font-size: 0.85rem; padding: 10px 12px; border-radius: var(--radius); cursor: pointer; flex: 1; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .action-sub-row { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+    .recurring-trigger-btn { background: #3b82f6; color: white; border: none; font-size: 0.8rem; padding: 10px 12px; border-radius: var(--radius); cursor: pointer; flex: 1; font-weight: 700; }
+    .qr-scan-btn { background: #8b5cf6; color: white; border: none; font-size: 0.8rem; padding: 10px 12px; border-radius: var(--radius); cursor: pointer; flex: 1; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .receipt-upload-btn { background: #10b981; color: white; border: none; font-size: 0.8rem; padding: 10px 12px; border-radius: var(--radius); cursor: pointer; flex: 1; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .emergency-btn { background: #f59e0b; color: #0f172a; border: none; font-size: 0.85rem; padding: 12px; border-radius: var(--radius); cursor: pointer; width: 100%; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 4px; }
 
     .view-toggle-btns { display: flex; gap: 4px; background: var(--input-bg); padding: 3px; border-radius: var(--radius); border: 1px solid var(--border); }
     .view-btn { padding: 6px 10px; font-size: 0.8rem; border: none; background: transparent; color: var(--text-muted); border-radius: 8px; cursor: pointer; }
@@ -653,7 +657,6 @@
 
     #qr-reader { width: 100%; border-radius: var(--radius); overflow: hidden; margin-top: 10px; border: 1px solid var(--border); }
 
-    /* Estilização oculta do Template do PDF para impressão limpa */
     #pdf-template-wrapper { display: none; }
   </style>
 </head>
@@ -679,7 +682,7 @@
     </div>
   </div>
 
-  <!-- CONTEÚDO PRINCIPAL (PROTEGIDO) -->
+  <!-- CONTEÚDO PRINCIPAL -->
   <div id="app-main-content" class="container hidden">
     <!-- Overlay Sidebar -->
     <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
@@ -701,7 +704,7 @@
         </div>
 
         <div class="sidebar-section">
-          <span class="sidebar-section-title">⚙️ Configurações</span>
+          <span class="sidebar-section-title">⚙️ Configurações & Lembretes</span>
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <span style="font-size: 0.85rem;">Aparência:</span>
             <select id="theme-selector" onchange="setTheme(this.value)" style="font-size: 0.8rem; padding: 6px 10px;">
@@ -711,6 +714,11 @@
           </div>
           <button class="btn btn-info" style="width: 100%; border-radius: var(--radius); padding: 10px; margin-top: 4px;" onclick="toggleSidebar(); openCategoriesModal();">
             🏷️ Gerenciar Categorias
+          </button>
+          
+          <!-- Botão Temporário de Teste de Notificação -->
+          <button class="btn btn-warning" style="width: 100%; border-radius: var(--radius); padding: 10px; margin-top: 4px; background: #f59e0b; color: #0f172a;" onclick="testPushNotification()">
+            🧪 Testar Notificação (21h)
           </button>
         </div>
 
@@ -804,6 +812,30 @@
       </div>
     </div>
 
+    <!-- Modal Reconciliação / Botão de Emergência -->
+    <div class="modal-overlay" id="emergency-modal">
+      <div class="modal">
+        <div class="modal-header-sticky">
+          <h3>🚨 Ajuste Rápido de Saldo</h3>
+          <button class="close-circle-btn" onclick="toggleEmergencyModal()">✕</button>
+        </div>
+        <form onsubmit="executeEmergencyBalanceAdjustment(event)">
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.4;">
+              Esqueceu de anotar algumas partidas? Informe quanto você tem <strong>disponível na sua conta bancária agora</strong> e o app lançará uma partida de correção com a diferença!
+            </p>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 700;">Saldo Real Atual no Banco (R$)</label>
+              <input type="number" step="0.01" id="emergency-real-balance" placeholder="Ex: 2700.00" required style="width: 100%; margin-top: 4px;">
+            </div>
+            <button type="submit" class="btn btn-primary" style="background: #f59e0b; color: #0f172a; font-weight: 800;">
+              ⚡ Reconciliar Saldo Agora
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- Modal Novo Lançamento Unificado -->
     <div class="modal-overlay" id="add-modal">
       <div class="modal">
@@ -834,12 +866,28 @@
               <label style="font-size: 0.8rem; font-weight: 600;">Categoria</label>
               <select id="quick-category" onchange="handleCategorySelectChange(this)" style="width: 100%;"></select>
             </div>
+
+            <!-- Botão de emergência destacado -->
+            <button type="button" class="emergency-btn" onclick="toggleAddModal(); toggleEmergencyModal();">
+              🚨 Esqueceu Gastos? Ajuste Rápido de Saldo
+            </button>
+
             <div class="action-sub-row">
               <button type="button" class="qr-scan-btn" onclick="startQrScanner('quick')">📷 Ler DANFE</button>
+
+              <!-- Upload / Leitor OCR de Comprovante Bancário -->
+              <label class="receipt-upload-btn">
+                <span>📄 Ler Comprovante</span>
+                <input type="file" accept="image/*" onchange="processReceiptOCR(this)" style="display:none;">
+              </label>
+
               <button type="button" class="recurring-trigger-btn" onclick="toggleAddModal(); toggleRecurringModal();">📌 Agendar Fixos</button>
             </div>
+
             <input type="hidden" id="quick-danfe-url">
             <span id="quick-danfe-status" style="font-size: 0.75rem; color: var(--primary);"></span>
+            <span id="ocr-status-msg" style="font-size: 0.75rem; color: var(--primary);"></span>
+
             <button type="submit" class="btn btn-primary" style="margin-top: 4px;">Salvar Lançamento</button>
           </div>
         </form>
@@ -934,14 +982,13 @@
       <input type="month" id="month-picker" onchange="updateUI()">
     </div>
 
-    <!-- TELA 1: INÍCIO (HERO MOBILE REDESIGNED) -->
+    <!-- TELA 1: INÍCIO -->
     <div id="tab-home" class="tab-view">
       <div class="greeting-card">
         <h2 id="user-welcome-title">Olá! 👋</h2>
         <p>Seus números de hoje são:</p>
       </div>
 
-      <!-- Hero Card de Saldos com Saldo Final em Destaque Grande + Sombra -->
       <div class="hero-balance-card">
         <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
           <span class="hero-balance-title">Saldo Final Restante</span>
@@ -964,7 +1011,6 @@
         </div>
       </div>
 
-      <!-- Histórico Mensal -->
       <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
           <h3>Histórico de Partidas</h3>
@@ -1087,71 +1133,6 @@
     </div>
   </div>
 
-  <!-- TEMPLATE IMPRESSÃO PDF EXTRATO -->
-  <div id="pdf-template-wrapper">
-    <div id="pdf-content" style="padding: 24px; font-family: sans-serif; color: #0f172a; background: #ffffff;">
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00c4b4; padding-bottom: 12px; margin-bottom: 20px;">
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <img src="icon-192.png" style="width: 40px; height: 40px; border-radius: 8px;" alt="Logo">
-          <div>
-            <h2 style="font-size: 1.4rem; color: #0f172a; margin: 0;">Finanzzas</h2>
-            <span style="font-size: 0.75rem; color: #64748b;">Gerenciador Financeiro Pessoal</span>
-          </div>
-        </div>
-        <div style="text-align: right;">
-          <h3 style="font-size: 1.1rem; color: #00c4b4; margin: 0; text-transform: uppercase;">Extrato Financeiro Mensal</h3>
-          <p id="pdf-meta-month" style="font-size: 0.85rem; font-weight: bold; margin-top: 2px; color: #334155;">-</p>
-        </div>
-      </div>
-
-      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; font-size: 0.85rem;">
-        <div>
-          <strong>Cliente:</strong> <span id="pdf-user-name">-</span><br>
-          <strong>E-mail:</strong> <span id="pdf-user-email">-</span>
-        </div>
-        <div style="text-align: right;">
-          <strong>Data de Emissão:</strong> <span id="pdf-issue-date">-</span>
-        </div>
-      </div>
-
-      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 24px;">
-        <div style="background: #ecfdf5; border: 1px solid #a7f3d0; padding: 12px; border-radius: 8px; text-align: center;">
-          <span style="font-size: 0.75rem; color: #047857; font-weight: bold; text-transform: uppercase;">Receitas</span>
-          <p id="pdf-total-income" style="font-size: 1.2rem; font-weight: bold; color: #059669; margin-top: 4px;">R$ 0,00</p>
-        </div>
-        <div style="background: #fef2f2; border: 1px solid #fecaca; padding: 12px; border-radius: 8px; text-align: center;">
-          <span style="font-size: 0.75rem; color: #b91c1c; font-weight: bold; text-transform: uppercase;">Despesas</span>
-          <p id="pdf-total-expense" style="font-size: 1.2rem; font-weight: bold; color: #dc2626; margin-top: 4px;">R$ 0,00</p>
-        </div>
-        <div style="background: #f0fdf4; border: 1px solid #cbd5e1; padding: 12px; border-radius: 8px; text-align: center;">
-          <span style="font-size: 0.75rem; color: #0f172a; font-weight: bold; text-transform: uppercase;">Saldo Final</span>
-          <p id="pdf-total-balance" style="font-size: 1.2rem; font-weight: bold; color: #0284c7; margin-top: 4px;">R$ 0,00</p>
-        </div>
-      </div>
-
-      <h4 style="font-size: 0.9rem; text-transform: uppercase; color: #475569; margin-bottom: 10px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px;">
-        Detalhamento das Partidas
-      </h4>
-
-      <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: left;">
-        <thead>
-          <tr style="background: #f1f5f9; color: #475569;">
-            <th style="padding: 8px; border-bottom: 2px solid #cbd5e1;">Data</th>
-            <th style="padding: 8px; border-bottom: 2px solid #cbd5e1;">Descrição</th>
-            <th style="padding: 8px; border-bottom: 2px solid #cbd5e1;">Categoria</th>
-            <th style="padding: 8px; border-bottom: 2px solid #cbd5e1;">Status</th>
-            <th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">Valor (R$)</th>
-          </tr>
-        </thead>
-        <tbody id="pdf-table-body"></tbody>
-      </table>
-
-      <div style="margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 10px; text-align: center; font-size: 0.7rem; color: #94a3b8;">
-        Documento gerado automaticamente pela plataforma Finanzzas PWA.
-      </div>
-    </div>
-  </div>
-
   <script>
     let transactions = [];
     let recurringRules = [];
@@ -1167,7 +1148,6 @@
     let mapMarkers = [];
     let firestoreUnsubscribe = null;
     let html5QrCode = null;
-    let activeQrTarget = 'quick';
 
     let currentSortColumn = 'date';
     let sortAscending = true;
@@ -1188,6 +1168,13 @@
       setViewMode(currentViewMode);
       updatePrivacyUI();
       setTheme(currentTheme);
+      requestNotificationPermission();
+
+      // Checa se abriu via Web Shortcut ou Web Share Target
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('action') === 'add') {
+        setTimeout(() => toggleAddModal(), 500);
+      }
 
       const checkFirebaseInterval = setInterval(() => {
         if (window.firebaseAuth) {
@@ -1211,6 +1198,117 @@
         }
       }, 200);
     });
+
+    /* Notificações Push Locais (21h) */
+    function requestNotificationPermission() {
+      if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+        Notification.requestPermission();
+      }
+    }
+
+    function testPushNotification() {
+      if ("Notification" in window && Notification.permission === "granted") {
+        const notif = new Notification("Finanzzas 🔔", {
+          body: "Passando para lembrar: registrou suas partidas de hoje no Finanzzas?",
+          icon: "icon-192.png"
+        });
+        notif.onclick = function() {
+          window.focus();
+          toggleAddModal();
+        };
+      } else {
+        alert("Notificações desativadas ou não suportadas neste navegador.");
+      }
+    }
+
+    /* Processamento OCR de Comprovantes Bancários via Tesseract.js */
+    async function processReceiptOCR(input) {
+      const file = input.files[0];
+      if (!file) return;
+
+      const statusMsg = document.getElementById('ocr-status-msg');
+      statusMsg.textContent = "⏳ Lendo comprovante bancário com OCR...";
+
+      try {
+        const worker = await Tesseract.createWorker('por');
+        const ret = await worker.recognize(file);
+        await worker.terminate();
+
+        const text = ret.data.text;
+        
+        // Expressão regular para capturar Valores em R$
+        const valueMatch = text.match(/R\$\s*([\d\.\,]+)/i) || text.match(/Valor[\:\s]+([\d\.\,]+)/i);
+        if (valueMatch) {
+          const rawVal = valueMatch[1].replace('.', '').replace(',', '.');
+          const valNum = parseFloat(rawVal);
+          if (!isNaN(valNum)) {
+            document.getElementById('quick-amount').value = valNum.toFixed(2);
+          }
+        }
+
+        // Tenta encontrar a descrição/destinatário
+        const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        let foundDesc = "Comprovante Banco";
+        for (let l of lines) {
+          if (l.toLowerCase().includes("para") || l.toLowerCase().includes("nome") || l.toLowerCase().includes("recebedor")) {
+            foundDesc = l.replace(/para|nome|recebedor|\:/gi, '').trim();
+            break;
+          }
+        }
+
+        document.getElementById('quick-desc').value = foundDesc || "Comprovante Pix";
+        statusMsg.textContent = "✅ Dados extraídos do comprovante com sucesso!";
+      } catch (err) {
+        statusMsg.textContent = "⚠️ Não foi possível ler o comprovante automaticamente.";
+      }
+    }
+
+    /* Modal Botão de Emergência (Reconciliação Rápida de Saldo) */
+    function toggleEmergencyModal() {
+      document.getElementById('emergency-modal').classList.toggle('open');
+    }
+
+    function executeEmergencyBalanceAdjustment(e) {
+      e.preventDefault();
+      const realBalance = parseFloat(document.getElementById('emergency-real-balance').value);
+      if (isNaN(realBalance)) return;
+
+      const selectedMonth = document.getElementById('month-picker').value;
+      const monthTransactions = transactions.filter(t => t.month === selectedMonth);
+
+      let income = 0, expense = 0;
+      monthTransactions.forEach(t => {
+        if (t.amount > 0) income += t.amount;
+        else expense += Math.abs(t.amount);
+      });
+
+      const prevBalance = calculateAccumulatedBalanceUntil(selectedMonth);
+      const currentAppBalance = prevBalance + income - expense;
+
+      const diff = realBalance - currentAppBalance;
+
+      if (Math.abs(diff) < 0.01) {
+        alert("Seu saldo no app já está idêntico ao saldo real!");
+        toggleEmergencyModal();
+        return;
+      }
+
+      transactions.unshift({
+        id: Date.now(),
+        desc: "Ajuste Rápido - Emergência",
+        amount: diff,
+        category: "Outros",
+        date: new Date().toLocaleDateString('pt-BR'),
+        month: selectedMonth,
+        status: 'paid',
+        location: null
+      });
+
+      saveData();
+      toggleEmergencyModal();
+      updateUI();
+      alert(`Correção efetuada! Partida de ${diff < 0 ? 'Despesa' : 'Receita'} no valor de ${formatCurrency(Math.abs(diff))} lançada.`);
+    }
 
     function setTheme(theme) {
       currentTheme = theme;
@@ -1246,7 +1344,6 @@
       return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
 
-    /* Gestão de Categorias Dinâmicas */
     function renderCategorySelects() {
       const selects = [
         document.getElementById('quick-category'),
@@ -1355,7 +1452,6 @@
       document.getElementById('pdf-modal').classList.toggle('open');
     }
 
-    /* Geração de Extrato Mensal PDF */
     function generatePDF() {
       const selectedMonth = document.getElementById('pdf-month-picker').value;
       const monthTransactions = transactions.filter(t => t.month === selectedMonth);
@@ -1419,9 +1515,7 @@
       });
     }
 
-    /* Leitor de QR Code DANFE */
     function startQrScanner(target) {
-      activeQrTarget = target;
       document.getElementById('qr-modal').classList.add('open');
       
       html5QrCode = new Html5Qrcode("qr-reader");
@@ -1492,6 +1586,7 @@
       saveData();
       document.getElementById('quick-expense-form').reset();
       document.getElementById('quick-danfe-status').textContent = '';
+      document.getElementById('ocr-status-msg').textContent = '';
       toggleAddModal();
       updateUI();
     }
@@ -1715,7 +1810,6 @@
       alert('Gasto agendado com sucesso!');
     }
 
-    /* Geração de Parcelas Inteligentes com R$ 0,00 nos Meses Passados */
     function generateRecurringTransactionsForRule(rule, monthsAhead = 24) {
       let [year, month] = rule.startMonth.split('-').map(Number);
       const totalCycles = rule.type === 'installment' ? rule.installments : monthsAhead;
@@ -1735,7 +1829,6 @@
         const exists = transactions.some(t => t.ruleId === rule.id && t.month === monthKey && t.installmentIndex === i);
 
         if (!exists) {
-          // Se o mês da parcela é anterior ao mês de referência atual, nasce com R$ 0,00 e status Pago
           const isPastMonth = monthKey < currentSelectedMonth;
           const actualAmount = isPastMonth ? 0 : -Math.abs(rule.amount);
 
@@ -1882,7 +1975,6 @@
       }
     }
 
-    /* Cálculo de Saldo Acumulado dos Meses Anteriores */
     function calculateAccumulatedBalanceUntil(targetMonth) {
       const uniqueMonths = [...new Set(transactions.map(t => t.month))].sort();
       let accum = 0;
