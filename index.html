@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Finanzzas v9.0 - Gerenciador Financeiro</title>
+  <title>Finanzzas v9.1 - Gerenciador Financeiro</title>
 
   <!-- Conexão PWA Manifest & Ícones -->
   <link rel="manifest" href="manifest.json">
@@ -471,7 +471,6 @@
     .btn-info { background: #3b82f6; color: white; border-radius: var(--radius); }
     .btn-danger { background: var(--danger); color: white; border-radius: var(--radius); }
 
-    /* Botões Grandes e Reformados para Edição e Ações */
     .btn-large-action {
       width: 100%;
       padding: 14px;
@@ -875,7 +874,7 @@
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
               <div>
-                <label style="font-size: 0.8rem; font-weight: 600;">Valor (R$)</label>
+                <label style="font-size: 0.8rem; font-weight: 600;">Valor Parcelado (R$)</label>
                 <input type="number" step="0.01" id="rec-amount" placeholder="0,00" required style="width: 100%;">
               </div>
               <div>
@@ -898,7 +897,7 @@
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
               <div>
-                <label style="font-size: 0.8rem; font-weight: 600;">Mês de Início</label>
+                <label style="font-size: 0.8rem; font-weight: 600;">Mês da 1ª Parcela</label>
                 <input type="month" id="rec-start-month" required style="width: 100%;">
               </div>
               <div>
@@ -1341,7 +1340,6 @@
       if (confirm(`Remover a categoria "${catToRemove}"? Lançamentos vinculados serão redirecionados para "Outros".`)) {
         customCategories = customCategories.filter(c => c !== catToRemove);
         
-        // Redireciona partidas da categoria excluída para "Outros"
         transactions.forEach(t => {
           if (t.category === catToRemove) t.category = 'Outros';
         });
@@ -1498,7 +1496,6 @@
       updateUI();
     }
 
-    /* Modal de Detalhes Reformado com Botões Grandes e Acessíveis */
     function openDetailModal(id) {
       const t = transactions.find(item => item.id === id);
       if (!t) return;
@@ -1549,7 +1546,6 @@
             <select id="edit-category" style="width:100%; margin-top:2px;">${optionsHtml}</select>
           </div>
 
-          <!-- Botão Grande de Salvar -->
           <button type="submit" class="btn btn-secondary btn-large-action" style="margin-top: 8px;">
             💾 Salvar Alterações
           </button>
@@ -1557,7 +1553,6 @@
 
         ${danfeButton}
 
-        <!-- Botão Grande de Excluir -->
         <button class="btn btn-danger btn-large-action" onclick="deleteTransaction(${t.id}); toggleDetailModal();">
           🗑️ Excluir Registro
         </button>
@@ -1720,9 +1715,12 @@
       alert('Gasto agendado com sucesso!');
     }
 
+    /* Geração de Parcelas Inteligentes com R$ 0,00 nos Meses Passados */
     function generateRecurringTransactionsForRule(rule, monthsAhead = 24) {
       let [year, month] = rule.startMonth.split('-').map(Number);
       const totalCycles = rule.type === 'installment' ? rule.installments : monthsAhead;
+
+      const currentSelectedMonth = document.getElementById('month-picker').value || new Date().toISOString().slice(0, 7);
 
       for (let i = 0; i < totalCycles; i++) {
         const monthFormatted = String(month).padStart(2, '0');
@@ -1737,16 +1735,20 @@
         const exists = transactions.some(t => t.ruleId === rule.id && t.month === monthKey && t.installmentIndex === i);
 
         if (!exists) {
+          // Se o mês da parcela é anterior ao mês de referência atual, nasce com R$ 0,00 e status Pago
+          const isPastMonth = monthKey < currentSelectedMonth;
+          const actualAmount = isPastMonth ? 0 : -Math.abs(rule.amount);
+
           transactions.push({
             id: Date.now() + Math.floor(Math.random() * 1000000),
             ruleId: rule.id,
             installmentIndex: i,
             desc: descWithInfo,
-            amount: -Math.abs(rule.amount),
+            amount: actualAmount,
             category: rule.category,
             date: dateStr,
             month: monthKey,
-            status: 'pending',
+            status: isPastMonth ? 'paid' : 'pending',
             location: null
           });
         }
@@ -1954,7 +1956,6 @@
         }
       });
 
-      // Saldo Anterior Acumulado
       const prevBalance = calculateAccumulatedBalanceUntil(selectedMonth);
       const totalBalanceWithPrev = prevBalance + globalIncome - globalExpense;
 
@@ -1978,7 +1979,6 @@
         const recurringTag = t.ruleId ? '<span class="badge-recurring">🔄 Fixo/Parc</span>' : '';
         const danfeTag = t.danfeUrl ? '📄' : '';
 
-        // Tile (Card)
         const tile = document.createElement('div');
         tile.className = 'tile-card';
         tile.onclick = (e) => {
@@ -1999,7 +1999,6 @@
         `;
         tilesContainer.appendChild(tile);
 
-        // Tabela
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${t.date}</td>
