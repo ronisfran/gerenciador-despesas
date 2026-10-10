@@ -507,7 +507,7 @@
       top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(15, 23, 42, 0.6);
       backdrop-filter: blur(6px);
-      z-index: 998;
+      z-index: 1050;
       display: none;
     }
     .sidebar {
@@ -517,7 +517,7 @@
       height: 100%;
       background: var(--sidebar-bg);
       border-right: 1px solid var(--border);
-      z-index: 999;
+      z-index: 1051;
       padding: 24px;
       display: flex;
       flex-direction: column;
@@ -571,19 +571,24 @@
       transition: border-color 0.2s, color 0.2s;
     }
 
-    /* Modais */
+    /* Modais - Z-index hierárquico progressivo para evitar sobreposição incorreta */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(15, 23, 42, 0.7);
       backdrop-filter: blur(6px);
-      z-index: 1000;
+      z-index: 1100;
       display: none;
       justify-content: center;
       align-items: center;
       padding: 16px;
     }
     .modal-overlay.open { display: flex; }
+
+    /* Modais específicos com prioridade mais alta quando abertos simultaneamente */
+    #detail-modal { z-index: 1200; }
+    #qr-modal { z-index: 1300; }
+    #emergency-modal { z-index: 1250; }
 
     .modal {
       background: var(--modal-bg);
@@ -594,7 +599,7 @@
       max-width: 560px;
       max-height: 85vh;
       overflow-y: auto;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
     }
 
     .modal-header-sticky {
@@ -1739,7 +1744,7 @@
               <small style="font-size: 0.72rem; color: var(--primary);">☁️ Conta ${userPlan === 'pro' ? 'PRO ⭐' : 'Grátis'}</small>
             </div>
           </div>
-          <button class="btn btn-danger" onclick="logoutUser()" style="width: 100%; margin-top: 6px; padding: 8px; font-size: 0.8rem;">🔒 Sair da Conta</button>
+          <button class="btn btn-danger" onclick="logoutUser()" style="width: 100%; margin-top: 6px; padding: 8px; font-size: 0.8rem;">Sair da Conta</button>
         `;
       }
     }
