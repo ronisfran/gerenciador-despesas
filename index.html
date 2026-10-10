@@ -571,7 +571,7 @@
       transition: border-color 0.2s, color 0.2s;
     }
 
-    /* Modais - Z-index hierárquico progressivo para evitar sobreposição incorreta */
+    /* Modais - Z-index hierárquico progressivo (Paywall na camada máxima) */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -585,10 +585,10 @@
     }
     .modal-overlay.open { display: flex; }
 
-    /* Modais específicos com prioridade mais alta quando abertos simultaneamente */
     #detail-modal { z-index: 1200; }
-    #qr-modal { z-index: 1300; }
     #emergency-modal { z-index: 1250; }
+    #qr-modal { z-index: 1300; }
+    #paywall-modal { z-index: 1400; } /* Garante que fique acima de qualquer outro pop-up */
 
     .modal {
       background: var(--modal-bg);
@@ -1221,7 +1221,7 @@
       }, 200);
     });
 
-    /* Trava do Modelo Freemium / Paywall */
+    /* Trava do Modelo Freemium / Paywall com fechamento automático de outros modais */
     function checkProFeature(actionCallback, featureName) {
       if (userPlan === 'pro') {
         actionCallback();
@@ -1231,6 +1231,14 @@
     }
 
     function openPaywallModal(reason) {
+      // Fecha outros modais abertos para garantir foco total e visualização limpa do paywall
+      document.getElementById('add-modal').classList.remove('open');
+      document.getElementById('emergency-modal').classList.remove('open');
+      document.getElementById('detail-modal').classList.remove('open');
+      document.getElementById('recurring-modal').classList.remove('open');
+      document.getElementById('pdf-modal').classList.remove('open');
+      document.getElementById('categories-modal').classList.remove('open');
+
       document.getElementById('paywall-feature-reason').textContent = `A funcionalidade "${reason}" é exclusiva do Plano Pro.`;
       document.getElementById('paywall-modal').classList.add('open');
     }
