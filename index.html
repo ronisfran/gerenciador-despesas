@@ -834,6 +834,36 @@
       </div>
     </div>
 
+    <!-- Template Oculto para Geração do PDF -->
+    <div id="pdf-content" style="display:none; padding: 20px; background: white; color: #0f172a; font-family: sans-serif;">
+      <h2 style="text-align: center; margin-bottom: 5px;">Extrato Financeiro - Finanzzas</h2>
+      <p style="text-align: center; font-size: 0.85rem; color: #64748b; margin-bottom: 20px;">Mês de Referência: <span id="pdf-meta-month"></span></p>
+      
+      <div style="margin-bottom: 15px; font-size: 0.9rem;">
+        <p><strong>Usuário:</strong> <span id="pdf-user-name"></span> (<span id="pdf-user-email"></span>)</p>
+        <p><strong>Data de Emissão:</strong> <span id="pdf-issue-date"></span></p>
+      </div>
+
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 20px;">
+        <thead>
+          <tr style="background: #f1f5f9; text-align: left;">
+            <th style="padding: 8px;">Data</th>
+            <th style="padding: 8px;">Descrição</th>
+            <th style="padding: 8px;">Categoria</th>
+            <th style="padding: 8px;">Status</th>
+            <th style="padding: 8px; text-align: right;">Valor</th>
+          </tr>
+        </thead>
+        <tbody id="pdf-table-body"></tbody>
+      </table>
+
+      <div style="border-top: 2px solid #cbd5e1; padding-top: 10px; font-size: 0.9rem;">
+        <p><strong>Total de Receitas:</strong> <span id="pdf-total-income" style="color: #059669;"></span></p>
+        <p><strong>Total de Despesas:</strong> <span id="pdf-total-expense" style="color: #dc2626;"></span></p>
+        <p style="font-size: 1.1rem; margin-top: 5px;"><strong>Saldo Final:</strong> <span id="pdf-total-balance" style="color: #00c4b4;"></span></p>
+      </div>
+    </div>
+
     <!-- Modal Scanner QR Code DANFE -->
     <div class="modal-overlay" id="qr-modal">
       <div class="modal">
