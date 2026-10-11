@@ -834,33 +834,61 @@
       </div>
     </div>
 
-    <!-- Template para Geração do PDF (Posicionado fora da tela para evitar renderização em branco) -->
-    <div id="pdf-content" style="position: absolute; left: -9999px; top: 0; width: 794px; padding: 30px; background: white; color: #0f172a; font-family: sans-serif; box-sizing: border-box;">
-      <h2 style="text-align: center; margin-bottom: 5px; font-size: 22px;">Extrato Financeiro - Finanzzas</h2>
-      <p style="text-align: center; font-size: 12px; color: #64748b; margin-bottom: 20px;">Mês de Referência: <span id="pdf-meta-month"></span></p>
+    <!-- Template Oculto para Geração do Extrato em PDF (Formato Extrato Bancário em Lista) -->
+    <div id="pdf-content" style="position: absolute; left: -9999px; top: 0; width: 794px; padding: 40px; background: #ffffff; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; box-sizing: border-box;">
       
-      <div style="margin-bottom: 20px; font-size: 13px; border-bottom: 1px solid #cbd5e1; padding-bottom: 10px;">
-        <p><strong>Usuário:</strong> <span id="pdf-user-name"></span> (<span id="pdf-user-email"></span>)</p>
-        <p style="margin-top: 4px;"><strong>Data de Emissão:</strong> <span id="pdf-issue-date"></span></p>
+      <!-- Cabeçalho do Extrato com Logo e Título -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00c4b4; padding-bottom: 15px; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="background: #0f172a; color: #00ffea; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 20px;">F</div>
+          <div>
+            <h1 style="font-size: 22px; font-weight: 900; color: #0f172a; margin: 0; letter-spacing: -0.5px;">Finanzzas</h1>
+            <p style="font-size: 11px; color: #64748b; margin: 0;">Extrato Financeiro Oficial</p>
+          </div>
+        </div>
+        <div style="text-align: right;">
+          <p style="font-size: 13px; font-weight: 700; color: #0f172a; margin: 0;">Mês: <span id="pdf-meta-month"></span></p>
+          <p style="font-size: 11px; color: #64748b; margin: 2px 0 0 0;">Emissão: <span id="pdf-issue-date"></span></p>
+        </div>
       </div>
 
-      <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 25px;">
-        <thead>
-          <tr style="background: #f1f5f9; text-align: left;">
-            <th style="padding: 10px; border-bottom: 2px solid #cbd5e1;">Data</th>
-            <th style="padding: 10px; border-bottom: 2px solid #cbd5e1;">Descrição</th>
-            <th style="padding: 10px; border-bottom: 2px solid #cbd5e1;">Categoria</th>
-            <th style="padding: 10px; border-bottom: 2px solid #cbd5e1;">Status</th>
-            <th style="padding: 10px; border-bottom: 2px solid #cbd5e1; text-align: right;">Valor</th>
-          </tr>
-        </thead>
-        <tbody id="pdf-table-body"></tbody>
-      </table>
+      <!-- Dados do Usuário / Cliente -->
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 18px; margin-bottom: 25px; font-size: 12px; display: flex; justify-content: space-between;">
+        <div>
+          <p style="margin: 0; color: #64748b; font-size: 10px; text-transform: uppercase; font-weight: 700;">Titular da Conta</p>
+          <p style="margin: 3px 0 0 0; font-weight: 800; color: #0f172a; font-size: 14px;" id="pdf-user-name">-</p>
+        </div>
+        <div style="text-align: right;">
+          <p style="margin: 0; color: #64748b; font-size: 10px; text-transform: uppercase; font-weight: 700;">E-mail Cadastrado</p>
+          <p style="margin: 3px 0 0 0; font-weight: 600; color: #0f172a;" id="pdf-user-email">-</p>
+        </div>
+      </div>
 
-      <div style="border-top: 2px solid #cbd5e1; padding-top: 15px; font-size: 13px; display: flex; flex-direction: column; gap: 6px;">
-        <p><strong>Total de Receitas:</strong> <span id="pdf-total-income" style="color: #059669;"></span></p>
-        <p><strong>Total de Despesas:</strong> <span id="pdf-total-expense" style="color: #dc2626;"></span></p>
-        <p style="font-size: 15px; margin-top: 5px;"><strong>Saldo Final:</strong> <span id="pdf-total-balance" style="color: #00c4b4; font-weight: bold;"></span></p>
+      <!-- Resumo de Lançamentos em Lista Vertical (Evita corte nas laterais) -->
+      <h3 style="font-size: 12px; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">Histórico de Movimentações</h3>
+      
+      <div id="pdf-transactions-list" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 30px;">
+        <!-- Inserido dinamicamente via JavaScript -->
+      </div>
+
+      <!-- Rodapé com Totais do Banco / Mês -->
+      <div style="background: #f1f5f9; border-radius: 12px; padding: 18px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #cbd5e1;">
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase;">Total de Entradas (Receitas)</span>
+          <span style="font-size: 14px; font-weight: 800; color: #059669;" id="pdf-total-income">R$ 0,00</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase;">Total de Saídas (Despesas)</span>
+          <span style="font-size: 14px; font-weight: 800; color: #dc2626;" id="pdf-total-expense">R$ 0,00</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px; text-align: right;">
+          <span style="font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase;">Saldo Final do Mês</span>
+          <span style="font-size: 16px; font-weight: 900; color: #00c4b4;" id="pdf-total-balance">R$ 0,00</span>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin-top: 30px; font-size: 10px; color: #94a3b8;">
+        Documento gerado digitalmente através do aplicativo Finanzzas • Controle Financeiro Pessoal
       </div>
     </div>
 
@@ -1472,75 +1500,79 @@
     }
 
     function generatePDF() {
-  const selectedMonth = document.getElementById('pdf-month-picker').value;
-  const monthTransactions = transactions.filter(t => t.month === selectedMonth);
+      const selectedMonth = document.getElementById('pdf-month-picker').value;
+      const monthTransactions = transactions.filter(t => t.month === selectedMonth);
 
-  if (monthTransactions.length === 0) {
-    alert('Nenhum registro encontrado para o mês selecionado.');
-    return;
-  }
+      if (monthTransactions.length === 0) {
+        alert('Nenhum registro encontrado para o mês selecionado.');
+        return;
+      }
 
-  const [year, month] = selectedMonth.split('-');
-  const dateObj = new Date(year, month - 1, 1);
-  const monthName = dateObj.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+      const [year, month] = selectedMonth.split('-');
+      const dateObj = new Date(year, month - 1, 1);
+      const monthName = dateObj.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
 
-  document.getElementById('pdf-meta-month').textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
-  
-  let rawName = currentUser ? currentUser.displayName : 'Usuário';
-  document.getElementById('pdf-user-name').textContent = rawName || '-';
-  document.getElementById('pdf-user-email').textContent = currentUser ? currentUser.email : '-';
-  document.getElementById('pdf-issue-date').textContent = new Date().toLocaleDateString('pt-BR');
+      document.getElementById('pdf-meta-month').textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+      
+      let rawName = currentUser ? currentUser.displayName : 'Usuário';
+      document.getElementById('pdf-user-name').textContent = rawName || '-';
+      document.getElementById('pdf-user-email').textContent = currentUser ? currentUser.email : '-';
+      document.getElementById('pdf-issue-date').textContent = new Date().toLocaleDateString('pt-BR');
 
-  let income = 0;
-  let expense = 0;
-  const tableBody = document.getElementById('pdf-table-body');
-  tableBody.innerHTML = '';
+      let income = 0;
+      let expense = 0;
+      const listContainer = document.getElementById('pdf-transactions-list');
+      listContainer.innerHTML = '';
 
-  monthTransactions.forEach(t => {
-    if (t.amount > 0) income += t.amount;
-    else expense += Math.abs(t.amount);
+      monthTransactions.forEach(t => {
+        if (t.amount > 0) income += t.amount;
+        else expense += Math.abs(t.amount);
 
-    const tr = document.createElement('tr');
-    tr.style.borderBottom = '1px solid #cbd5e1';
-    const valFormatted = t.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    const color = t.amount < 0 ? '#dc2626' : '#059669';
-    const statusTxt = t.status === 'paid' ? 'Pago ✅' : 'Pendente ⏳';
+        const valFormatted = t.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        const color = t.amount < 0 ? '#dc2626' : '#059669';
+        const statusTxt = t.status === 'paid' ? 'Pago ✅' : 'Pendente ⏳';
 
-    tr.innerHTML = `
-      <td style="padding: 6px 8px; font-size: 11px;">${t.date}</td>
-      <td style="padding: 6px 8px; font-size: 11px; font-weight: bold; word-break: break-word;">${t.desc}</td>
-      <td style="padding: 6px 8px; font-size: 11px;">${t.category}</td>
-      <td style="padding: 6px 8px; font-size: 11px;">${statusTxt}</td>
-      <td style="padding: 6px 8px; font-size: 11px; text-align: right; color: ${color}; font-weight: bold;">${valFormatted}</td>
-    `;
-    tableBody.appendChild(tr);
-  });
+        const itemDiv = document.createElement('div');
+        itemDiv.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 12px;";
 
-  document.getElementById('pdf-total-income').textContent = income.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  document.getElementById('pdf-total-expense').textContent = expense.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  document.getElementById('pdf-total-balance').textContent = (income - expense).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        itemDiv.innerHTML = `
+          <div style="display: flex; flex-direction: column; gap: 2px; max-width: 60%;">
+            <strong style="color: #0f172a; font-size: 13px;">${t.desc}</strong>
+            <span style="color: #64748b; font-size: 11px;">${t.date} • <span style="background: #f1f5f9; padding: 1px 6px; border-radius: 4px;">${t.category}</span> • ${statusTxt}</span>
+          </div>
+          <div style="font-weight: 800; font-size: 13px; color: ${color}; text-align: right;">
+            ${valFormatted}
+          </div>
+        `;
+        listContainer.appendChild(itemDiv);
+      });
 
-  const element = document.getElementById('pdf-content');
-  element.style.position = 'static';
-  element.style.left = 'auto';
+      document.getElementById('pdf-total-income').textContent = income.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      document.getElementById('pdf-total-expense').textContent = expense.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      document.getElementById('pdf-total-balance').textContent = (income - expense).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-  const opt = {
-    margin:       [10, 10, 10, 10], // Margens superior, esquerda, inferior, direita em mm
-    filename:     `Finanzzas_Extrato_${selectedMonth}.pdf`,
-    image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2, useCORS: true },
-    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] } // Evita cortes feios no meio das linhas
-  };
+      const element = document.getElementById('pdf-content');
+      element.style.position = 'static';
+      element.style.left = 'auto';
 
-  setTimeout(() => {
-    html2pdf().set(opt).from(element).save().then(() => {
-      element.style.position = 'absolute';
-      element.style.left = '-9999px';
-      togglePdfModal();
-    });
-  }, 300);
-}
+      const opt = {
+        margin:       10,
+        filename:     `Finanzzas_Extrato_${selectedMonth}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+      };
+
+      setTimeout(() => {
+        html2pdf().set(opt).from(element).save().then(() => {
+          element.style.position = 'absolute';
+          element.style.left = '-9999px';
+          togglePdfModal();
+        });
+      }, 300);
+    }
+
     function startQrScanner(target) {
       document.getElementById('qr-modal').classList.add('open');
       
