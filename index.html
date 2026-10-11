@@ -1507,11 +1507,11 @@
     const statusTxt = t.status === 'paid' ? 'Pago ✅' : 'Pendente ⏳';
 
     tr.innerHTML = `
-      <td style="padding: 10px;">${t.date}</td>
-      <td style="padding: 10px; font-weight: bold;">${t.desc}</td>
-      <td style="padding: 10px;">${t.category}</td>
-      <td style="padding: 10px;">${statusTxt}</td>
-      <td style="padding: 10px; text-align: right; color: ${color}; font-weight: bold;">${valFormatted}</td>
+      <td style="padding: 6px 8px; font-size: 11px;">${t.date}</td>
+      <td style="padding: 6px 8px; font-size: 11px; font-weight: bold; word-break: break-word;">${t.desc}</td>
+      <td style="padding: 6px 8px; font-size: 11px;">${t.category}</td>
+      <td style="padding: 6px 8px; font-size: 11px;">${statusTxt}</td>
+      <td style="padding: 6px 8px; font-size: 11px; text-align: right; color: ${color}; font-weight: bold;">${valFormatted}</td>
     `;
     tableBody.appendChild(tr);
   });
@@ -1520,23 +1520,21 @@
   document.getElementById('pdf-total-expense').textContent = expense.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   document.getElementById('pdf-total-balance').textContent = (income - expense).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-  // Torna o elemento visível temporariamente para o canvas capturar com sucesso
   const element = document.getElementById('pdf-content');
   element.style.position = 'static';
   element.style.left = 'auto';
 
   const opt = {
-    margin:       10,
+    margin:       [10, 10, 10, 10], // Margens superior, esquerda, inferior, direita em mm
     filename:     `Finanzzas_Extrato_${selectedMonth}.pdf`,
     image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2, useCORS: true, logging: true },
-    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    html2canvas:  { scale: 2, useCORS: true },
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] } // Evita cortes feios no meio das linhas
   };
 
-  // Pequeno atraso para garantir o repaint do DOM antes da conversão
   setTimeout(() => {
     html2pdf().set(opt).from(element).save().then(() => {
-      // Oculta novamente após salvar
       element.style.position = 'absolute';
       element.style.left = '-9999px';
       togglePdfModal();
