@@ -834,60 +834,60 @@
       </div>
     </div>
 
-    <!-- Template Oculto para Geração do Extrato em PDF (Formato Extrato Bancário em Lista) -->
-    <div id="pdf-content" style="position: absolute; left: -9999px; top: 0; width: 794px; padding: 40px; background: #ffffff; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; box-sizing: border-box;">
+    <!-- Template Oculto Ajustado com Largura Exata para A4 (Evita cortes nas laterais) -->
+    <div id="pdf-content" style="position: absolute; left: -9999px; top: 0; width: 680px; padding: 25px; background: #ffffff; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; box-sizing: border-box;">
       
       <!-- Cabeçalho do Extrato com Logo e Título -->
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00c4b4; padding-bottom: 15px; margin-bottom: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00c4b4; padding-bottom: 12px; margin-bottom: 15px;">
         <div style="display: flex; align-items: center; gap: 10px;">
-          <div style="background: #0f172a; color: #00ffea; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 20px;">F</div>
+          <div style="background: #0f172a; color: #00ffea; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px;">F</div>
           <div>
-            <h1 style="font-size: 22px; font-weight: 900; color: #0f172a; margin: 0; letter-spacing: -0.5px;">Finanzzas</h1>
-            <p style="font-size: 11px; color: #64748b; margin: 0;">Extrato Financeiro Oficial</p>
+            <h1 style="font-size: 20px; font-weight: 900; color: #0f172a; margin: 0; letter-spacing: -0.5px;">Finanzzas</h1>
+            <p style="font-size: 10px; color: #64748b; margin: 0;">Extrato Financeiro Oficial</p>
           </div>
         </div>
         <div style="text-align: right;">
-          <p style="font-size: 13px; font-weight: 700; color: #0f172a; margin: 0;">Mês: <span id="pdf-meta-month"></span></p>
-          <p style="font-size: 11px; color: #64748b; margin: 2px 0 0 0;">Emissão: <span id="pdf-issue-date"></span></p>
+          <p style="font-size: 12px; font-weight: 700; color: #0f172a; margin: 0;">Mês: <span id="pdf-meta-month"></span></p>
+          <p style="font-size: 10px; color: #64748b; margin: 2px 0 0 0;">Emissão: <span id="pdf-issue-date"></span></p>
         </div>
       </div>
 
       <!-- Dados do Usuário / Cliente -->
-      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 18px; margin-bottom: 25px; font-size: 12px; display: flex; justify-content: space-between;">
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-size: 11px; display: flex; justify-content: space-between;">
         <div>
-          <p style="margin: 0; color: #64748b; font-size: 10px; text-transform: uppercase; font-weight: 700;">Titular da Conta</p>
-          <p style="margin: 3px 0 0 0; font-weight: 800; color: #0f172a; font-size: 14px;" id="pdf-user-name">-</p>
+          <p style="margin: 0; color: #64748b; font-size: 9px; text-transform: uppercase; font-weight: 700;">Titular da Conta</p>
+          <p style="margin: 2px 0 0 0; font-weight: 800; color: #0f172a; font-size: 13px;" id="pdf-user-name">-</p>
         </div>
         <div style="text-align: right;">
-          <p style="margin: 0; color: #64748b; font-size: 10px; text-transform: uppercase; font-weight: 700;">E-mail Cadastrado</p>
-          <p style="margin: 3px 0 0 0; font-weight: 600; color: #0f172a;" id="pdf-user-email">-</p>
+          <p style="margin: 0; color: #64748b; font-size: 9px; text-transform: uppercase; font-weight: 700;">E-mail Cadastrado</p>
+          <p style="margin: 2px 0 0 0; font-weight: 600; color: #0f172a;" id="pdf-user-email">-</p>
         </div>
       </div>
 
-      <!-- Resumo de Lançamentos em Lista Vertical (Evita corte nas laterais) -->
-      <h3 style="font-size: 12px; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">Histórico de Movimentações</h3>
+      <!-- Resumo de Lançamentos em Lista Vertical com Margens Seguras -->
+      <h3 style="font-size: 11px; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">Histórico de Movimentações</h3>
       
-      <div id="pdf-transactions-list" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 30px;">
+      <div id="pdf-transactions-list" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px;">
         <!-- Inserido dinamicamente via JavaScript -->
       </div>
 
       <!-- Rodapé com Totais do Banco / Mês -->
-      <div style="background: #f1f5f9; border-radius: 12px; padding: 18px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #cbd5e1;">
-        <div style="display: flex; flex-direction: column; gap: 4px;">
-          <span style="font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase;">Total de Entradas (Receitas)</span>
-          <span style="font-size: 14px; font-weight: 800; color: #059669;" id="pdf-total-income">R$ 0,00</span>
+      <div style="background: #f1f5f9; border-radius: 10px; padding: 14px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #cbd5e1;">
+        <div style="display: flex; flex-direction: column; gap: 2px;">
+          <span style="font-size: 10px; color: #64748b; font-weight: 700; text-transform: uppercase;">Total Entradas</span>
+          <span style="font-size: 13px; font-weight: 800; color: #059669;" id="pdf-total-income">R$ 0,00</span>
         </div>
-        <div style="display: flex; flex-direction: column; gap: 4px;">
-          <span style="font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase;">Total de Saídas (Despesas)</span>
-          <span style="font-size: 14px; font-weight: 800; color: #dc2626;" id="pdf-total-expense">R$ 0,00</span>
+        <div style="display: flex; flex-direction: column; gap: 2px;">
+          <span style="font-size: 10px; color: #64748b; font-weight: 700; text-transform: uppercase;">Total Saídas</span>
+          <span style="font-size: 13px; font-weight: 800; color: #dc2626;" id="pdf-total-expense">R$ 0,00</span>
         </div>
-        <div style="display: flex; flex-direction: column; gap: 4px; text-align: right;">
-          <span style="font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase;">Saldo Final do Mês</span>
-          <span style="font-size: 16px; font-weight: 900; color: #00c4b4;" id="pdf-total-balance">R$ 0,00</span>
+        <div style="display: flex; flex-direction: column; gap: 2px; text-align: right;">
+          <span style="font-size: 10px; color: #64748b; font-weight: 700; text-transform: uppercase;">Saldo Final</span>
+          <span style="font-size: 14px; font-weight: 900; color: #00c4b4;" id="pdf-total-balance">R$ 0,00</span>
         </div>
       </div>
 
-      <div style="text-align: center; margin-top: 30px; font-size: 10px; color: #94a3b8;">
+      <div style="text-align: center; margin-top: 20px; font-size: 9px; color: #94a3b8;">
         Documento gerado digitalmente através do aplicativo Finanzzas • Controle Financeiro Pessoal
       </div>
     </div>
@@ -1533,14 +1533,14 @@
         const statusTxt = t.status === 'paid' ? 'Pago ✅' : 'Pendente ⏳';
 
         const itemDiv = document.createElement('div');
-        itemDiv.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 12px;";
+        itemDiv.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 11px;";
 
         itemDiv.innerHTML = `
-          <div style="display: flex; flex-direction: column; gap: 2px; max-width: 60%;">
-            <strong style="color: #0f172a; font-size: 13px;">${t.desc}</strong>
-            <span style="color: #64748b; font-size: 11px;">${t.date} • <span style="background: #f1f5f9; padding: 1px 6px; border-radius: 4px;">${t.category}</span> • ${statusTxt}</span>
+          <div style="display: flex; flex-direction: column; gap: 2px; max-width: 65%;">
+            <strong style="color: #0f172a; font-size: 12px; word-break: break-word;">${t.desc}</strong>
+            <span style="color: #64748b; font-size: 10px;">${t.date} • <span style="background: #f1f5f9; padding: 1px 4px; border-radius: 3px;">${t.category}</span> • ${statusTxt}</span>
           </div>
-          <div style="font-weight: 800; font-size: 13px; color: ${color}; text-align: right;">
+          <div style="font-weight: 800; font-size: 12px; color: ${color}; text-align: right; white-space: nowrap;">
             ${valFormatted}
           </div>
         `;
@@ -1556,7 +1556,7 @@
       element.style.left = 'auto';
 
       const opt = {
-        margin:       10,
+        margin:       15, // Margens laterais e verticais seguras em mm
         filename:     `Finanzzas_Extrato_${selectedMonth}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  { scale: 2, useCORS: true },
