@@ -824,7 +824,7 @@
             Escolha o mês de referência para gerar o relatório em formato de extrato bancário profissional.
           </p>
           <div>
-            <label style="font-size: 0.8rem; font-weight: 600;">Mês de Referência:</label>
+            <label style="font-size: 0.80rem; font-weight: 600;">Mês de Referência:</label>
             <input type="month" id="pdf-month-picker" style="width: 100%; margin-top: 4px;">
           </div>
           <button class="btn btn-primary" onclick="generatePDF()" style="margin-top: 6px;">
@@ -834,33 +834,33 @@
       </div>
     </div>
 
-    <!-- Template Oculto para Geração do PDF -->
-    <div id="pdf-content" style="display:none; padding: 20px; background: white; color: #0f172a; font-family: sans-serif;">
-      <h2 style="text-align: center; margin-bottom: 5px;">Extrato Financeiro - Finanzzas</h2>
-      <p style="text-align: center; font-size: 0.85rem; color: #64748b; margin-bottom: 20px;">Mês de Referência: <span id="pdf-meta-month"></span></p>
+    <!-- Template para Geração do PDF (Posicionado fora da tela para evitar renderização em branco) -->
+    <div id="pdf-content" style="position: absolute; left: -9999px; top: 0; width: 794px; padding: 30px; background: white; color: #0f172a; font-family: sans-serif; box-sizing: border-box;">
+      <h2 style="text-align: center; margin-bottom: 5px; font-size: 22px;">Extrato Financeiro - Finanzzas</h2>
+      <p style="text-align: center; font-size: 12px; color: #64748b; margin-bottom: 20px;">Mês de Referência: <span id="pdf-meta-month"></span></p>
       
-      <div style="margin-bottom: 15px; font-size: 0.9rem;">
+      <div style="margin-bottom: 20px; font-size: 13px; border-bottom: 1px solid #cbd5e1; padding-bottom: 10px;">
         <p><strong>Usuário:</strong> <span id="pdf-user-name"></span> (<span id="pdf-user-email"></span>)</p>
-        <p><strong>Data de Emissão:</strong> <span id="pdf-issue-date"></span></p>
+        <p style="margin-top: 4px;"><strong>Data de Emissão:</strong> <span id="pdf-issue-date"></span></p>
       </div>
 
-      <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 20px;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 25px;">
         <thead>
           <tr style="background: #f1f5f9; text-align: left;">
-            <th style="padding: 8px;">Data</th>
-            <th style="padding: 8px;">Descrição</th>
-            <th style="padding: 8px;">Categoria</th>
-            <th style="padding: 8px;">Status</th>
-            <th style="padding: 8px; text-align: right;">Valor</th>
+            <th style="padding: 10px; border-bottom: 2px solid #cbd5e1;">Data</th>
+            <th style="padding: 10px; border-bottom: 2px solid #cbd5e1;">Descrição</th>
+            <th style="padding: 10px; border-bottom: 2px solid #cbd5e1;">Categoria</th>
+            <th style="padding: 10px; border-bottom: 2px solid #cbd5e1;">Status</th>
+            <th style="padding: 10px; border-bottom: 2px solid #cbd5e1; text-align: right;">Valor</th>
           </tr>
         </thead>
         <tbody id="pdf-table-body"></tbody>
       </table>
 
-      <div style="border-top: 2px solid #cbd5e1; padding-top: 10px; font-size: 0.9rem;">
+      <div style="border-top: 2px solid #cbd5e1; padding-top: 15px; font-size: 13px; display: flex; flex-direction: column; gap: 6px;">
         <p><strong>Total de Receitas:</strong> <span id="pdf-total-income" style="color: #059669;"></span></p>
         <p><strong>Total de Despesas:</strong> <span id="pdf-total-expense" style="color: #dc2626;"></span></p>
-        <p style="font-size: 1.1rem; margin-top: 5px;"><strong>Saldo Final:</strong> <span id="pdf-total-balance" style="color: #00c4b4;"></span></p>
+        <p style="font-size: 15px; margin-top: 5px;"><strong>Saldo Final:</strong> <span id="pdf-total-balance" style="color: #00c4b4; font-weight: bold;"></span></p>
       </div>
     </div>
 
@@ -1507,11 +1507,11 @@
         const statusTxt = t.status === 'paid' ? 'Pago ✅' : 'Pendente ⏳';
 
         tr.innerHTML = `
-          <td style="padding: 8px;">${t.date}</td>
-          <td style="padding: 8px; font-weight: bold;">${t.desc}</td>
-          <td style="padding: 8px;">${t.category}</td>
-          <td style="padding: 8px;">${statusTxt}</td>
-          <td style="padding: 8px; text-align: right; color: ${color}; font-weight: bold;">${valFormatted}</td>
+          <td style="padding: 10px;">${t.date}</td>
+          <td style="padding: 10px; font-weight: bold;">${t.desc}</td>
+          <td style="padding: 10px;">${t.category}</td>
+          <td style="padding: 10px;">${statusTxt}</td>
+          <td style="padding: 10px; text-align: right; color: ${color}; font-weight: bold;">${valFormatted}</td>
         `;
         tableBody.appendChild(tr);
       });
@@ -1525,7 +1525,7 @@
         margin:       10,
         filename:     `Finanzzas_Extrato_${selectedMonth}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 },
+        html2canvas:  { scale: 2, useCORS: true },
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
 
