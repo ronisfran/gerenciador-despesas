@@ -362,7 +362,6 @@
       cursor: default;
     }
 
-    /* Regras de Cores do Calendário */
     .calendar-day.has-income-only {
       background: var(--primary);
       color: #0f172a !important;
@@ -388,7 +387,6 @@
       border: 2px solid var(--primary);
     }
 
-    /* Bottom Dock */
     .bottom-dock-overlay {
       position: fixed;
       bottom: 0; left: 0; right: 0;
@@ -525,7 +523,8 @@
       display: inline-block;
     }
     .badge-paid { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
-    .badge-pending { background: rgba(184, 127, 255, 0.15); color: var(--accent-purple); border: 1px solid rgba(184, 127, 255, 0.3); }
+    .badge-pending-expense { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .badge-scheduled { background: rgba(184, 127, 255, 0.15); color: var(--accent-purple); border: 1px solid rgba(184, 127, 255, 0.3); }
     .badge-recurring { background: rgba(0, 255, 234, 0.15); color: var(--primary); border: 1px solid rgba(0, 255, 234, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; margin-left: 4px; }
     .badge-pro { background: linear-gradient(135deg, #f59e0b, #ec4899); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 800; }
 
@@ -1188,7 +1187,7 @@
         <p>Seus números de hoje são:</p>
       </div>
 
-      <!-- Hero Card de Balanço Atualizado com Receita Pendente na Cor Lilás -->
+      <!-- Hero Card de Balanço -->
       <div class="hero-balance-card">
         <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
           <span class="hero-balance-title">Saldo Final Restante</span>
@@ -1212,7 +1211,7 @@
         </div>
       </div>
 
-      <!-- Componente do Calendário Interativo -->
+      <!-- Calendário Interativo -->
       <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
           <h3>📅 Calendário do Mês</h3>
@@ -1434,7 +1433,6 @@
       }
     }
 
-    /* Trava do Modelo Freemium / Paywall */
     function checkProFeature(actionCallback, featureName) {
       if (userPlan === 'pro') {
         actionCallback();
@@ -1479,7 +1477,7 @@
       let income = 0, expense = 0;
       monthTransactions.forEach(t => {
         if (t.amount > 0 && t.status === 'paid') income += t.amount;
-        else if (t.amount < 0 && t.status === 'paid') expense += Math.abs(t.amount);
+        else if (t.amount < 0) expense += Math.abs(t.amount);
       });
 
       const prevBalance = calculateAccumulatedBalanceUntil(selectedMonth);
@@ -1501,6 +1499,7 @@
         date: new Date().toLocaleDateString('pt-BR'),
         month: selectedMonth,
         status: 'paid',
+        isScheduled: false,
         location: null
       });
 
@@ -1788,16 +1787,18 @@
 
       let finalAmount = Math.abs(amount);
       let status = 'paid';
+      let isScheduled = false;
 
       if (type === 'expense') {
         finalAmount = -Math.abs(amount);
-        status = 'paid';
+        status = 'pending'; // Despesas pendentes continuam como pending
       } else if (type === 'income') {
         finalAmount = Math.abs(amount);
         status = 'paid';
       } else if (type === 'scheduled') {
         finalAmount = Math.abs(amount);
-        status = 'pending'; // Agendado
+        status = 'pending'; // A receber
+        isScheduled = true;
       }
 
       transactions.unshift({
@@ -1808,7 +1809,7 @@
         date: new Date().toLocaleDateString('pt-BR'),
         month: selectedMonth,
         status: status,
-        isScheduled: type === 'scheduled',
+        isScheduled: isScheduled,
         location: loc,
         danfeUrl: danfeUrl || null
       });
@@ -1820,16 +1821,24 @@
       updateUI();
     }
 
-    // Função para Dar Baixa no Agendamento Pago
+    // Função para Dar Baixa no Agendamento Pago (Atualiza data para hoje e converte em receita paga)
     function markScheduledAsPaid(id) {
       const t = transactions.find(item => item.id === id);
       if (t) {
+        const now = new Date();
+        const dayFormatted = String(now.getDate()).padStart(2, '0');
+        const monthFormatted = String(now.getMonth() + 1).padStart(2, '0');
+        const year = now.getFullYear();
+
+        t.date = `${dayFormatted}/${monthFormatted}/${year}`;
+        t.month = `${year}-${monthFormatted}`;
         t.status = 'paid';
         t.isScheduled = false;
+
         saveData();
         toggleDetailModal();
         updateUI();
-        alert(`Sucesso! O lançamento "${t.desc}" foi confirmado como Receita Paga!`);
+        alert(`Sucesso! O agendamento "${t.desc}" foi convertido em Receita Paga com a data de hoje.`);
       }
     }
 
@@ -1837,9 +1846,22 @@
       const t = transactions.find(item => item.id === id);
       if (!t) return;
 
-      const isPaid = t.status === 'paid';
-      const badgeClass = isPaid ? 'badge-paid' : 'badge-pending';
-      const badgeText = isPaid ? 'Pago ✅' : 'A Receber / Agendado ⏳';
+      const isScheduled = t.isScheduled;
+      const isExpense = t.amount < 0;
+      
+      let badgeClass = 'badge-paid';
+      let badgeText = 'Pago ✅';
+
+      if (isScheduled) {
+        badgeClass = 'badge-scheduled';
+        badgeText = 'A Receber ⏳';
+      } else if (!isExpense && t.status === 'pending') {
+        badgeClass = 'badge-scheduled';
+        badgeText = 'Pendente ⏳';
+      } else if (isExpense && t.status === 'pending') {
+        badgeClass = 'badge-pending-expense';
+        badgeText = 'Pendente ⏳';
+      }
 
       const danfeButton = t.danfeUrl ? `
         <a href="${t.danfeUrl}" target="_blank" class="btn btn-info btn-large-action" style="text-decoration:none;">
@@ -1848,7 +1870,7 @@
       ` : '';
 
       // Botão Exclusivo para 'Agendamento Pago'
-      const scheduledPaidBtn = (t.status === 'pending' || t.isScheduled) ? `
+      const scheduledPaidBtn = isScheduled ? `
         <button class="btn btn-purple btn-large-action" onclick="markScheduledAsPaid(${t.id})">
           ⚡ Agendamento Pago (Confirmar Receita)
         </button>
@@ -1882,9 +1904,9 @@
             <div>
               <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted);">Tipo</label>
               <select id="edit-type" style="width:100%; margin-top:2px;">
-                <option value="expense" ${t.amount < 0 ? 'selected' : ''}>Despesa 🔴</option>
-                <option value="income" ${(t.amount >= 0 && t.status === 'paid') ? 'selected' : ''}>Receita 🟢</option>
-                <option value="scheduled" ${(t.status === 'pending') ? 'selected' : ''}>Agendado 🟡</option>
+                <option value="expense" ${isExpense ? 'selected' : ''}>Despesa 🔴</option>
+                <option value="income" ${(!isExpense && !isScheduled) ? 'selected' : ''}>Receita 🟢</option>
+                <option value="scheduled" ${isScheduled ? 'selected' : ''}>Agendado 🟡</option>
               </select>
             </div>
           </div>
@@ -1919,7 +1941,7 @@
 
       if (type === 'expense') {
         t.amount = -Math.abs(amount);
-        t.status = 'paid';
+        t.status = 'pending';
         t.isScheduled = false;
       } else if (type === 'income') {
         t.amount = Math.abs(amount);
@@ -2140,6 +2162,7 @@
             date: dateStr,
             month: monthKey,
             status: isPastMonth ? 'paid' : 'pending',
+            isScheduled: false,
             location: null
           });
         }
@@ -2188,7 +2211,7 @@
 
     function toggleStatus(id) {
       const transaction = transactions.find(t => t.id === id);
-      if (transaction) {
+      if (transaction && !transaction.isScheduled) {
         transaction.status = transaction.status === 'paid' ? 'pending' : 'paid';
         saveData();
         updateUI();
@@ -2212,7 +2235,10 @@
         const lat = t.location ? t.location.lat : '';
         const lng = t.location ? t.location.lng : '';
         const danfe = t.danfeUrl || '';
-        const statusTxt = t.status === 'paid' ? 'Pago' : 'Pendente/Agendado';
+        let statusTxt = 'Pago';
+        if (t.isScheduled) statusTxt = 'A Receber';
+        else if (t.status === 'pending') statusTxt = 'Pendente';
+
         csv += `"${t.date}";"${t.desc}";"${t.category}";"${val}";"${statusTxt}";"${lat}";"${lng}";"${danfe}"\n`;
       });
 
@@ -2279,11 +2305,11 @@
 
       for (const m of uniqueMonths) {
         if (m >= targetMonth) break;
-        const monthTs = transactions.filter(t => t.month === m && t.status === 'paid');
+        const monthTs = transactions.filter(t => t.month === m && !t.isScheduled);
         let inc = 0, exp = 0;
         monthTs.forEach(t => {
-          if (t.amount > 0) inc += t.amount;
-          else exp += Math.abs(t.amount);
+          if (t.amount > 0 && t.status === 'paid') inc += t.amount;
+          else if (t.amount < 0) exp += Math.abs(t.amount);
         });
         accum += (inc - exp);
       }
@@ -2291,7 +2317,7 @@
       return accum;
     }
 
-    /* Lógica do Calendário Interativo */
+    /* Lógica do Calendário Interativo (Ignora Agendamentos) */
     function renderCalendar(selectedMonth, monthTransactions) {
       const grid = document.getElementById('calendar-grid-days');
       grid.innerHTML = '';
@@ -2304,26 +2330,25 @@
       const currentYearMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
       const todayDateNum = today.getDate();
 
-      // Espaços vazios no início do mês
       for (let i = 0; i < firstDay; i++) {
         const emptyCell = document.createElement('div');
         emptyCell.className = 'calendar-day empty';
         grid.appendChild(emptyCell);
       }
 
-      // Preenchimento dos dias
       for (let day = 1; day <= totalDays; day++) {
         const dayFormatted = String(day).padStart(2, '0');
         const monthFormatted = String(month).padStart(2, '0');
         const dateStr = `${dayFormatted}/${monthFormatted}/${year}`;
 
-        const dayTs = monthTransactions.filter(t => t.date === dateStr);
+        // Calendário considera apenas receitas pagas e despesas
+        const dayTs = monthTransactions.filter(t => t.date === dateStr && !t.isScheduled);
 
         let hasIncome = false;
         let hasExpense = false;
 
         dayTs.forEach(t => {
-          if (t.amount > 0) hasIncome = true;
+          if (t.amount > 0 && t.status === 'paid') hasIncome = true;
           if (t.amount < 0) hasExpense = true;
         });
 
@@ -2331,7 +2356,6 @@
         dayCell.className = 'calendar-day';
         dayCell.textContent = day;
 
-        // Estilização por Tipo de Partida no Dia
         if (hasIncome && hasExpense) {
           dayCell.classList.add('has-both');
         } else if (hasIncome) {
@@ -2344,8 +2368,7 @@
           dayCell.classList.add('is-today');
         }
 
-        // Clique para Abrir Pop-up do Dia
-        dayCell.onclick = () => openDayModal(dateStr, dayTs);
+        dayCell.onclick = () => openDayModal(dateStr, monthTransactions.filter(t => t.date === dateStr));
 
         grid.appendChild(dayCell);
       }
@@ -2367,9 +2390,23 @@
           if (t.amount > 0 && t.status === 'paid') dayIncome += t.amount;
           else if (t.amount < 0) dayExpense += Math.abs(t.amount);
 
-          const isPaid = t.status === 'paid';
-          const badgeClass = isPaid ? 'badge-paid' : 'badge-pending';
-          const badgeText = isPaid ? 'Pago ✅' : 'A Receber ⏳';
+          const isScheduled = t.isScheduled;
+          const isExpense = t.amount < 0;
+
+          let badgeClass = 'badge-paid';
+          let badgeText = 'Pago ✅';
+
+          if (isScheduled) {
+            badgeClass = 'badge-scheduled';
+            badgeText = 'A Receber ⏳';
+          } else if (!isExpense && t.status === 'pending') {
+            badgeClass = 'badge-scheduled';
+            badgeText = 'Pendente ⏳';
+          } else if (isExpense && t.status === 'pending') {
+            badgeClass = 'badge-pending-expense';
+            badgeText = 'Pendente ⏳';
+          }
+
           const recurringTag = t.ruleId ? '<span class="badge-recurring">🔄 Fixo/Parc</span>' : '';
 
           const tile = document.createElement('div');
@@ -2382,7 +2419,7 @@
               <span class="tile-sub">${t.category}</span>
             </div>
             <div class="tile-right">
-              <span class="tile-amount ${t.amount < 0 ? 'text-danger' : 'text-success'}">${formatCurrency(t.amount)}</span>
+              <span class="tile-amount ${isExpense ? 'text-danger' : (isScheduled ? 'text-purple' : 'text-success')}">${formatCurrency(t.amount)}</span>
               <span class="badge ${badgeClass}">${badgeText}</span>
             </div>
           `;
@@ -2410,7 +2447,6 @@
 
       const monthTransactions = transactions.filter(t => t.month === selectedMonth);
 
-      // Renderiza o Calendário Interativo
       renderCalendar(selectedMonth, monthTransactions);
 
       let filtered = monthTransactions.filter(t => {
@@ -2422,8 +2458,8 @@
         
         let matchesType = true;
         if (filterType === 'expense') matchesType = t.amount < 0;
-        else if (filterType === 'income') matchesType = (t.amount >= 0 && t.status === 'paid');
-        else if (filterType === 'scheduled') matchesType = (t.status === 'pending');
+        else if (filterType === 'income') matchesType = (t.amount >= 0 && t.status === 'paid' && !t.isScheduled);
+        else if (filterType === 'scheduled') matchesType = t.isScheduled;
 
         const matchesStatus = filterStatus === 'ALL' || t.status === filterStatus;
 
@@ -2446,16 +2482,16 @@
       tableBody.innerHTML = '';
 
       let globalIncomePaid = 0;
-      let globalIncomePending = 0; // Receita Pendente (A Receber)
+      let globalIncomePending = 0; // A Receber (Agendados)
       let globalExpense = 0;
       const globalCategoryTotals = {};
 
       monthTransactions.forEach(t => {
         if (t.amount > 0) {
-          if (t.status === 'paid') {
-            globalIncomePaid += t.amount;
-          } else {
+          if (t.isScheduled) {
             globalIncomePending += t.amount;
+          } else if (t.status === 'paid') {
+            globalIncomePaid += t.amount;
           }
         } else {
           const absVal = Math.abs(t.amount);
@@ -2475,7 +2511,6 @@
         badgeElem.classList.add('hidden');
       }
 
-      // Exibição do Valor Pendente em Lilás
       const pendingBadge = document.getElementById('pending-income-badge');
       if (globalIncomePending > 0) {
         pendingBadge.classList.remove('hidden');
@@ -2490,9 +2525,23 @@
       }
 
       filtered.forEach(t => {
-        const isPaid = t.status === 'paid';
-        const badgeClass = isPaid ? 'badge-paid' : 'badge-pending';
-        const badgeText = isPaid ? 'Pago ✅' : 'A Receber ⏳';
+        const isScheduled = t.isScheduled;
+        const isExpense = t.amount < 0;
+
+        let badgeClass = 'badge-paid';
+        let badgeText = 'Pago ✅';
+
+        if (isScheduled) {
+          badgeClass = 'badge-scheduled';
+          badgeText = 'A Receber ⏳';
+        } else if (!isExpense && t.status === 'pending') {
+          badgeClass = 'badge-scheduled';
+          badgeText = 'Pendente ⏳';
+        } else if (isExpense && t.status === 'pending') {
+          badgeClass = 'badge-pending-expense';
+          badgeText = 'Pendente ⏳';
+        }
+
         const recurringTag = t.ruleId ? '<span class="badge-recurring">🔄 Fixo/Parc</span>' : '';
         const danfeTag = t.danfeUrl ? '📄' : '';
 
@@ -2510,7 +2559,7 @@
             <span class="tile-sub">${t.date} • ${t.category} ${t.location ? '📍' : ''}</span>
           </div>
           <div class="tile-right">
-            <span class="tile-amount ${t.amount < 0 ? 'text-danger' : (isPaid ? 'text-success' : 'text-purple')}">${formatCurrency(t.amount)}</span>
+            <span class="tile-amount ${isExpense ? 'text-danger' : (isScheduled ? 'text-purple' : 'text-success')}">${formatCurrency(t.amount)}</span>
             <span class="badge ${badgeClass}" onclick="event.stopPropagation(); toggleStatus(${t.id});">${badgeText}</span>
           </div>
         `;
@@ -2521,7 +2570,7 @@
           <td>${t.date}</td>
           <td>${t.desc} ${recurringTag} ${danfeTag}</td>
           <td>${t.category}</td>
-          <td class="${t.amount < 0 ? 'text-danger' : (isPaid ? 'text-success' : 'text-purple')}">${formatCurrency(t.amount)}</td>
+          <td class="${isExpense ? 'text-danger' : (isScheduled ? 'text-purple' : 'text-success')}">${formatCurrency(t.amount)}</td>
           <td><span class="badge ${badgeClass}" onclick="toggleStatus(${t.id})">${badgeText}</span></td>
           <td>${t.location ? '📍' : '-'}</td>
           <td><button onclick="deleteTransaction(${t.id})" class="close-circle-btn" style="width:22px; height:22px; font-size:0.7rem;">✕</button></td>
@@ -2644,9 +2693,9 @@
       months.forEach(m => {
         let inc = 0;
         let exp = 0;
-        transactions.filter(t => t.month === m && t.status === 'paid').forEach(t => {
-          if (t.amount > 0) inc += t.amount;
-          else exp += Math.abs(t.amount);
+        transactions.filter(t => t.month === m && !t.isScheduled).forEach(t => {
+          if (t.amount > 0 && t.status === 'paid') inc += t.amount;
+          else if (t.amount < 0) exp += Math.abs(t.amount);
         });
         incomeData.push(inc);
         expenseData.push(exp);
