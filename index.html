@@ -315,44 +315,49 @@
 
     /* Calendário Estilizado */
     .calendar-container {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
 
-    .calendar-header-week {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      text-align: center;
-      font-size: 0.75rem;
-      font-weight: 800;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      margin-bottom: 4px;
-    }
+.calendar-header-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
 
-    .calendar-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 6px;
-    }
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  width: 100%;
+}
 
-    .calendar-day {
-      aspect-ratio: 1;
-      border-radius: 12px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.85rem;
-      font-weight: 800;
-      cursor: pointer;
-      position: relative;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-      color: var(--text);
-    }
+.calendar-day {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-height: 48px; /* Evita que os dias estiquem demais em telas largas ou na horizontal */
+  border-radius: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.15s ease;
+  color: var(--text);
+  box-sizing: border-box;
+}
 
     .calendar-day:active { transform: scale(0.92); }
 
@@ -1657,77 +1662,83 @@
     }
 
     function generatePDF() {
-      const selectedMonth = document.getElementById('pdf-month-picker').value;
-      const monthTransactions = transactions.filter(t => t.month === selectedMonth && t.status === 'paid');
+  const selectedMonth = document.getElementById('pdf-month-picker').value;
+  
+  // Inclui todas as despesas e receitas confirmadas do mês (exclui apenas receitas pendentes de agendamento)
+  const monthTransactions = transactions.filter(t => t.month === selectedMonth && !t.isScheduled);
 
-      if (monthTransactions.length === 0) {
-        alert('Nenhum registro pago encontrado para o mês selecionado.');
-        return;
-      }
+  if (monthTransactions.length === 0) {
+    alert('Nenhum registro encontrado para o mês selecionado.');
+    return;
+  }
 
-      const [year, month] = selectedMonth.split('-');
-      const dateObj = new Date(year, month - 1, 1);
-      const monthName = dateObj.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+  const [year, month] = selectedMonth.split('-');
+  const dateObj = new Date(year, month - 1, 1);
+  const monthName = dateObj.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
 
-      document.getElementById('pdf-meta-month').textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
-      
-      let rawName = currentUser ? currentUser.displayName : 'Usuário';
-      document.getElementById('pdf-user-name').textContent = rawName || '-';
-      document.getElementById('pdf-user-email').textContent = currentUser ? currentUser.email : '-';
-      document.getElementById('pdf-issue-date').textContent = new Date().toLocaleDateString('pt-BR');
+  document.getElementById('pdf-meta-month').textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+  
+  let rawName = currentUser ? currentUser.displayName : 'Usuário';
+  document.getElementById('pdf-user-name').textContent = rawName || '-';
+  document.getElementById('pdf-user-email').textContent = currentUser ? currentUser.email : '-';
+  document.getElementById('pdf-issue-date').textContent = new Date().toLocaleDateString('pt-BR');
 
-      let income = 0;
-      let expense = 0;
-      const listContainer = document.getElementById('pdf-transactions-list');
-      listContainer.innerHTML = '';
+  let income = 0;
+  let expense = 0;
+  const listContainer = document.getElementById('pdf-transactions-list');
+  listContainer.innerHTML = '';
 
-      monthTransactions.forEach(t => {
-        if (t.amount > 0) income += t.amount;
-        else expense += Math.abs(t.amount);
+  monthTransactions.forEach(t => {
+    if (t.amount > 0 && t.status === 'paid') income += t.amount;
+    else if (t.amount < 0) expense += Math.abs(t.amount);
 
-        const valFormatted = t.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        const color = t.amount < 0 ? '#dc2626' : '#059669';
+    const valFormatted = t.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    const color = t.amount < 0 ? '#dc2626' : '#059669';
+    const statusTxt = t.amount < 0 ? (t.status === 'paid' ? 'Pago ✅' : 'Pendente ⏳') : 'Recebido ✅';
 
-        const itemDiv = document.createElement('div');
-        itemDiv.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 11px;";
+    const itemDiv = document.createElement('div');
+    itemDiv.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 11px;";
 
-        itemDiv.innerHTML = `
-          <div style="display: flex; flex-direction: column; gap: 2px; max-width: 65%;">
-            <strong style="color: #0f172a; font-size: 12px; word-break: break-word;">${t.desc}</strong>
-            <span style="color: #64748b; font-size: 10px;">${t.date} • <span style="background: #f1f5f9; padding: 1px 4px; border-radius: 3px;">${t.category}</span></span>
-          </div>
-          <div style="font-weight: 800; font-size: 12px; color: ${color}; text-align: right; white-space: nowrap;">
-            ${valFormatted}
-          </div>
-        `;
-        listContainer.appendChild(itemDiv);
-      });
+    itemDiv.innerHTML = `
+      <div style="display: flex; flex-direction: column; gap: 2px; max-width: 65%;">
+        <strong style="color: #0f172a; font-size: 12px; word-break: break-word;">${t.desc}</strong>
+        <span style="color: #64748b; font-size: 10px;">${t.date} • <span style="background: #f1f5f9; padding: 1px 4px; border-radius: 3px;">${t.category}</span> • ${statusTxt}</span>
+      </div>
+      <div style="font-weight: 800; font-size: 12px; color: ${color}; text-align: right; white-space: nowrap;">
+        ${valFormatted}
+      </div>
+    `;
+    listContainer.appendChild(itemDiv);
+  });
 
-      document.getElementById('pdf-total-income').textContent = income.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-      document.getElementById('pdf-total-expense').textContent = expense.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-      document.getElementById('pdf-total-balance').textContent = (income - expense).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const prevBalance = calculateAccumulatedBalanceUntil(selectedMonth);
+  const finalBalance = prevBalance + income - expense;
 
-      const element = document.getElementById('pdf-content');
-      element.style.position = 'static';
-      element.style.left = 'auto';
+  document.getElementById('pdf-total-income').textContent = income.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  document.getElementById('pdf-total-expense').textContent = expense.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  document.getElementById('pdf-total-balance').textContent = finalBalance.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-      const opt = {
-        margin:       15,
-        filename:     `Finanzzas_Extrato_${selectedMonth}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
-      };
+  const element = document.getElementById('pdf-content');
+  element.style.position = 'static';
+  element.style.left = 'auto';
 
-      setTimeout(() => {
-        html2pdf().set(opt).from(element).save().then(() => {
-          element.style.position = 'absolute';
-          element.style.left = '-9999px';
-          togglePdfModal();
-        });
-      }, 300);
-    }
+  const opt = {
+    margin:       15,
+    filename:     `Finanzzas_Extrato_${selectedMonth}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, useCORS: true },
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+  };
+
+  setTimeout(() => {
+    html2pdf().set(opt).from(element).save().then(() => {
+      element.style.position = 'absolute';
+      element.style.left = '-9999px';
+      togglePdfModal();
+    });
+  }, 300);
+}
 
     function startQrScanner(target) {
       document.getElementById('qr-modal').classList.add('open');
