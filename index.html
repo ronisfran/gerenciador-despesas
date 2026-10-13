@@ -71,6 +71,8 @@
       --primary: #00ffea;
       --primary-hover: #00d7c6;
       --primary-text: #0f172a;
+      --accent-purple: #b87fff;
+      --accent-purple-dark: #8b5cf6;
       --success: #10b981;
       --danger: #ef4444;
       --warning: #f59e0b;
@@ -89,6 +91,8 @@
       --primary: #00c4b4;
       --primary-hover: #00a396;
       --primary-text: #ffffff;
+      --accent-purple: #9333ea;
+      --accent-purple-dark: #7c3aed;
       --input-bg: #f1f5f9;
       --sidebar-bg: #ffffff;
       --modal-bg: #ffffff;
@@ -262,6 +266,15 @@
       line-height: 1.1;
     }
 
+    .pending-income-badge {
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: var(--accent-purple);
+      margin-top: 3px;
+      display: block;
+      letter-spacing: 0.2px;
+    }
+
     .hero-subrow {
       display: flex;
       justify-content: space-around;
@@ -300,6 +313,82 @@
       font-weight: 600;
     }
 
+    /* Calendário Estilizado */
+    .calendar-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .calendar-header-week {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+    }
+
+    .calendar-day {
+      aspect-ratio: 1;
+      border-radius: 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 800;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      color: var(--text);
+    }
+
+    .calendar-day:active { transform: scale(0.92); }
+
+    .calendar-day.empty {
+      background: transparent;
+      border: none;
+      cursor: default;
+    }
+
+    /* Regras de Cores do Calendário */
+    .calendar-day.has-income-only {
+      background: var(--primary);
+      color: #0f172a !important;
+      border: none;
+      box-shadow: 0 0 8px rgba(0, 255, 234, 0.3);
+    }
+
+    .calendar-day.has-expense-only {
+      background: var(--accent-purple-dark);
+      color: #0f172a !important;
+      border: none;
+      box-shadow: 0 0 8px rgba(139, 92, 246, 0.3);
+    }
+
+    .calendar-day.has-both {
+      background: linear-gradient(135deg, var(--primary), var(--accent-purple-dark));
+      color: #0f172a !important;
+      border: none;
+      box-shadow: 0 0 10px rgba(0, 255, 234, 0.3);
+    }
+
+    .calendar-day.is-today {
+      border: 2px solid var(--primary);
+    }
+
+    /* Bottom Dock */
     .bottom-dock-overlay {
       position: fixed;
       bottom: 0; left: 0; right: 0;
@@ -436,13 +525,14 @@
       display: inline-block;
     }
     .badge-paid { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
-    .badge-pending { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-pending { background: rgba(184, 127, 255, 0.15); color: var(--accent-purple); border: 1px solid rgba(184, 127, 255, 0.3); }
     .badge-recurring { background: rgba(0, 255, 234, 0.15); color: var(--primary); border: 1px solid rgba(0, 255, 234, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; margin-left: 4px; }
     .badge-pro { background: linear-gradient(135deg, #f59e0b, #ec4899); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 800; }
 
     .text-success { color: var(--success); }
     .text-danger { color: var(--danger); }
     .text-primary { color: var(--primary); }
+    .text-purple { color: var(--accent-purple); }
 
     .btn {
       cursor: pointer;
@@ -469,6 +559,7 @@
     .btn-info { background: #3b82f6; color: white; border-radius: var(--radius); }
     .btn-danger { background: var(--danger); color: white; border-radius: var(--radius); }
     .btn-pro { background: linear-gradient(135deg, #f59e0b, #ec4899); color: white; font-weight: 800; }
+    .btn-purple { background: var(--accent-purple-dark); color: white; border-radius: var(--radius); }
 
     .btn-large-action {
       width: 100%;
@@ -571,7 +662,7 @@
       transition: border-color 0.2s, color 0.2s;
     }
 
-    /* Modais - Z-index hierárquico progressivo (Paywall na camada máxima) */
+    /* Modais */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -586,9 +677,10 @@
     .modal-overlay.open { display: flex; }
 
     #detail-modal { z-index: 1200; }
+    #day-modal { z-index: 1220; }
     #emergency-modal { z-index: 1250; }
     #qr-modal { z-index: 1300; }
-    #paywall-modal { z-index: 1400; } /* Garante que fique acima de qualquer outro pop-up */
+    #paywall-modal { z-index: 1400; }
 
     .modal {
       background: var(--modal-bg);
@@ -669,10 +761,11 @@
         Faça login com sua conta do Google para proteger e sincronizar seus dados em nuvem com segurança.
       </p>
 
-      <button class="btn btn-primary" onclick="loginWithGoogle()" style="padding: 14px; font-size: 1rem; background: #4285f4; color: white; display: flex; gap: 10px; align-items: center; justify-content: center;">
+      <button id="google-login-btn" class="btn btn-primary" onclick="loginWithGoogle()" style="padding: 14px; font-size: 1rem; background: #4285f4; color: white; display: flex; gap: 10px; align-items: center; justify-content: center;">
         <svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1H12v3.8h5.35c-.25 1.5-1.5 4.35-5.35 4.35-3.2 0-5.85-2.65-5.85-5.85S8.8 7.55 12 7.55c1.8 0 3 .75 3.7 1.4L18.4 6.3C16.8 4.8 14.6 4 12 4 7.58 4 4 7.58 4 12s3.58 8 8 8c4.6 0 7.65-3.2 7.65-7.8 0-.5-.05-.8-.3-1.1z"/></svg>
-        Entrar com Google
+        <span id="login-btn-text">Entrar com Google</span>
       </button>
+      <p id="login-error-msg" style="color: #ef4444; font-size: 0.82rem; margin-top: 4px; display: none;"></p>
     </div>
   </div>
 
@@ -834,25 +927,22 @@
       </div>
     </div>
 
-    <!-- Template Oculto Ajustado com Largura Exata para A4 (Evita cortes nas laterais) -->
+    <!-- Template Oculto para A4 -->
     <div id="pdf-content" style="position: absolute; left: -9999px; top: 0; width: 680px; padding: 25px; background: #ffffff; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; box-sizing: border-box;">
-      
-     <!-- Cabeçalho do Extrato com a Logo Oficial (icon-192.png) -->
-<div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00c4b4; padding-bottom: 12px; margin-bottom: 15px;">
-  <div style="display: flex; align-items: center; gap: 10px;">
-    <img src="icon-192.png" style="width: 36px; height: 36px; border-radius: 8px;" alt="Logo Finanzzas">
-    <div>
-      <h1 style="font-size: 20px; font-weight: 900; color: #0f172a; margin: 0; letter-spacing: -0.5px;">Finanzzas</h1>
-      <p style="font-size: 10px; color: #64748b; margin: 0;">Extrato Financeiro Oficial</p>
-    </div>
-  </div>
-  <div style="text-align: right;">
-    <p style="font-size: 12px; font-weight: 700; color: #0f172a; margin: 0;">Mês: <span id="pdf-meta-month"></span></p>
-    <p style="font-size: 10px; color: #64748b; margin: 2px 0 0 0;">Emissão: <span id="pdf-issue-date"></span></p>
-  </div>
-</div>
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00c4b4; padding-bottom: 12px; margin-bottom: 15px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <img src="icon-192.png" style="width: 36px; height: 36px; border-radius: 8px;" alt="Logo Finanzzas">
+          <div>
+            <h1 style="font-size: 20px; font-weight: 900; color: #0f172a; margin: 0; letter-spacing: -0.5px;">Finanzzas</h1>
+            <p style="font-size: 10px; color: #64748b; margin: 0;">Extrato Financeiro Oficial</p>
+          </div>
+        </div>
+        <div style="text-align: right;">
+          <p style="font-size: 12px; font-weight: 700; color: #0f172a; margin: 0;">Mês: <span id="pdf-meta-month"></span></p>
+          <p style="font-size: 10px; color: #64748b; margin: 2px 0 0 0;">Emissão: <span id="pdf-issue-date"></span></p>
+        </div>
+      </div>
 
-      <!-- Dados do Usuário / Cliente -->
       <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-size: 11px; display: flex; justify-content: space-between;">
         <div>
           <p style="margin: 0; color: #64748b; font-size: 9px; text-transform: uppercase; font-weight: 700;">Titular da Conta</p>
@@ -864,14 +954,10 @@
         </div>
       </div>
 
-      <!-- Resumo de Lançamentos em Lista Vertical com Margens Seguras -->
       <h3 style="font-size: 11px; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">Histórico de Movimentações</h3>
       
-      <div id="pdf-transactions-list" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px;">
-        <!-- Inserido dinamicamente via JavaScript -->
-      </div>
+      <div id="pdf-transactions-list" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px;"></div>
 
-      <!-- Rodapé com Totais do Banco / Mês -->
       <div style="background: #f1f5f9; border-radius: 10px; padding: 14px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #cbd5e1;">
         <div style="display: flex; flex-direction: column; gap: 2px;">
           <span style="font-size: 10px; color: #64748b; font-weight: 700; text-transform: uppercase;">Total Entradas</span>
@@ -889,6 +975,33 @@
 
       <div style="text-align: center; margin-top: 20px; font-size: 9px; color: #94a3b8;">
         Documento gerado digitalmente através do aplicativo Finanzzas • Controle Financeiro Pessoal
+      </div>
+    </div>
+
+    <!-- Modal Pop-up do Dia no Calendário -->
+    <div class="modal-overlay" id="day-modal">
+      <div class="modal">
+        <div class="modal-header-sticky">
+          <h3 id="day-modal-title">📅 Partidas do Dia</h3>
+          <button class="close-circle-btn" onclick="toggleDayModal()">✕</button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          
+          <!-- Mini Placar Resumo do Dia -->
+          <div style="background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; display: flex; justify-content: space-around; text-align: center;">
+            <div>
+              <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Receitas</span>
+              <p id="day-summary-income" class="text-success" style="font-weight: 800; font-size: 1rem;">R$ 0,00</p>
+            </div>
+            <div style="width: 1px; background: var(--border);"></div>
+            <div>
+              <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Despesas</span>
+              <p id="day-summary-expense" class="text-danger" style="font-weight: 800; font-size: 1rem;">R$ 0,00</p>
+            </div>
+          </div>
+
+          <div id="day-transactions-list" class="tiles-container"></div>
+        </div>
       </div>
     </div>
 
@@ -930,7 +1043,7 @@
       </div>
     </div>
 
-    <!-- Modal Novo Lançamento Unificado -->
+    <!-- Modal Novo Lançamento Unificado com a opção Agendado -->
     <div class="modal-overlay" id="add-modal">
       <div class="modal">
         <div class="modal-header-sticky">
@@ -941,7 +1054,7 @@
           <div style="display: flex; flex-direction: column; gap: 12px;">
             <div>
               <label style="font-size: 0.8rem; font-weight: 600;">Descrição</label>
-              <input type="text" id="quick-desc" placeholder="Ex: Mercado, Lanche" required style="width: 100%;">
+              <input type="text" id="quick-desc" placeholder="Ex: Mercado, Lanche, Diária Evento" required style="width: 100%;">
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
               <div>
@@ -953,6 +1066,7 @@
                 <select id="quick-type" style="width: 100%;">
                   <option value="expense">Despesa 🔴</option>
                   <option value="income">Receita 🟢</option>
+                  <option value="scheduled">Agendado 🟡 (A Receber)</option>
                 </select>
               </div>
             </div>
@@ -961,7 +1075,6 @@
               <select id="quick-category" onchange="handleCategorySelectChange(this)" style="width: 100%;"></select>
             </div>
 
-            <!-- Botão de emergência destacado -->
             <button type="button" class="emergency-btn" onclick="checkProFeature(() => { toggleAddModal(); toggleEmergencyModal(); }, 'Botão de Emergência')">
               🚨 Esqueceu Gastos? Ajuste Rápido ⭐
             </button>
@@ -980,7 +1093,7 @@
       </div>
     </div>
 
-    <!-- Modal Detalhes & Edição -->
+    <!-- Modal Detalhes & Edição com botão 'Agendamento Pago' -->
     <div class="modal-overlay" id="detail-modal">
       <div class="modal">
         <div class="modal-header-sticky">
@@ -1075,6 +1188,7 @@
         <p>Seus números de hoje são:</p>
       </div>
 
+      <!-- Hero Card de Balanço Atualizado com Receita Pendente na Cor Lilás -->
       <div class="hero-balance-card">
         <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
           <span class="hero-balance-title">Saldo Final Restante</span>
@@ -1088,6 +1202,7 @@
           <div class="hero-subitem">
             <span>Receitas (Entradas)</span>
             <p id="total-income" class="text-success">R$ 0,00</p>
+            <span id="pending-income-badge" class="pending-income-badge hidden">(+ R$ 0,00 a receber)</span>
           </div>
           <div style="width: 1px; background: var(--border);"></div>
           <div class="hero-subitem">
@@ -1097,6 +1212,21 @@
         </div>
       </div>
 
+      <!-- Componente do Calendário Interativo -->
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h3>📅 Calendário do Mês</h3>
+          <span style="font-size: 0.72rem; color: var(--text-muted);">Clique no dia para ver o resumo</span>
+        </div>
+        <div class="calendar-container">
+          <div class="calendar-header-week">
+            <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+          </div>
+          <div id="calendar-grid-days" class="calendar-grid"></div>
+        </div>
+      </div>
+
+      <!-- Histórico de Partidas -->
       <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
           <h3>Histórico de Partidas</h3>
@@ -1145,6 +1275,7 @@
               <option value="ALL">Todos</option>
               <option value="expense">Apenas Despesas 🔴</option>
               <option value="income">Apenas Receitas 🟢</option>
+              <option value="scheduled">Apenas Agendados 🟡</option>
             </select>
           </div>
           <div>
@@ -1223,7 +1354,7 @@
     let transactions = [];
     let recurringRules = [];
     let customCategories = ["Alimentação", "Transporte", "Moradia", "Lazer", "Trabalho", "Outros"];
-    let userPlan = 'free'; // 'free' ou 'pro'
+    let userPlan = 'free';
     
     let currentViewMode = localStorage.getItem('viewMode') || 'tiles';
     let hideValues = localStorage.getItem('hideValues') === 'true';
@@ -1279,7 +1410,31 @@
       }, 200);
     });
 
-    /* Trava do Modelo Freemium / Paywall com fechamento automático de outros modais */
+    async function loginWithGoogle() {
+      const btn = document.getElementById('google-login-btn');
+      const btnText = document.getElementById('login-btn-text');
+      const errorMsg = document.getElementById('login-error-msg');
+
+      btn.disabled = true;
+      btnText.textContent = "Aguarde...";
+      errorMsg.style.display = "none";
+
+      try {
+        await window.signInWithPopup(window.firebaseAuth, window.googleProvider);
+      } catch (err) {
+        if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+          errorMsg.textContent = "Login cancelado. Tente novamente.";
+        } else {
+          errorMsg.textContent = "Erro ao conectar. Tente novamente.";
+        }
+        errorMsg.style.display = "block";
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = "Entrar com Google";
+      }
+    }
+
+    /* Trava do Modelo Freemium / Paywall */
     function checkProFeature(actionCallback, featureName) {
       if (userPlan === 'pro') {
         actionCallback();
@@ -1289,13 +1444,13 @@
     }
 
     function openPaywallModal(reason) {
-      // Fecha outros modais abertos para garantir foco total e visualização limpa do paywall
       document.getElementById('add-modal').classList.remove('open');
       document.getElementById('emergency-modal').classList.remove('open');
       document.getElementById('detail-modal').classList.remove('open');
       document.getElementById('recurring-modal').classList.remove('open');
       document.getElementById('pdf-modal').classList.remove('open');
       document.getElementById('categories-modal').classList.remove('open');
+      document.getElementById('day-modal').classList.remove('open');
 
       document.getElementById('paywall-feature-reason').textContent = `A funcionalidade "${reason}" é exclusiva do Plano Pro.`;
       document.getElementById('paywall-modal').classList.add('open');
@@ -1305,9 +1460,12 @@
       document.getElementById('paywall-modal').classList.toggle('open');
     }
 
-    /* Modal Botão de Emergência */
     function toggleEmergencyModal() {
       document.getElementById('emergency-modal').classList.toggle('open');
+    }
+
+    function toggleDayModal() {
+      document.getElementById('day-modal').classList.toggle('open');
     }
 
     function executeEmergencyBalanceAdjustment(e) {
@@ -1320,8 +1478,8 @@
 
       let income = 0, expense = 0;
       monthTransactions.forEach(t => {
-        if (t.amount > 0) income += t.amount;
-        else expense += Math.abs(t.amount);
+        if (t.amount > 0 && t.status === 'paid') income += t.amount;
+        else if (t.amount < 0 && t.status === 'paid') expense += Math.abs(t.amount);
       });
 
       const prevBalance = calculateAccumulatedBalanceUntil(selectedMonth);
@@ -1501,10 +1659,10 @@
 
     function generatePDF() {
       const selectedMonth = document.getElementById('pdf-month-picker').value;
-      const monthTransactions = transactions.filter(t => t.month === selectedMonth);
+      const monthTransactions = transactions.filter(t => t.month === selectedMonth && t.status === 'paid');
 
       if (monthTransactions.length === 0) {
-        alert('Nenhum registro encontrado para o mês selecionado.');
+        alert('Nenhum registro pago encontrado para o mês selecionado.');
         return;
       }
 
@@ -1530,7 +1688,6 @@
 
         const valFormatted = t.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         const color = t.amount < 0 ? '#dc2626' : '#059669';
-        const statusTxt = t.status === 'paid' ? 'Pago ✅' : 'Pendente ⏳';
 
         const itemDiv = document.createElement('div');
         itemDiv.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 11px;";
@@ -1538,7 +1695,7 @@
         itemDiv.innerHTML = `
           <div style="display: flex; flex-direction: column; gap: 2px; max-width: 65%;">
             <strong style="color: #0f172a; font-size: 12px; word-break: break-word;">${t.desc}</strong>
-            <span style="color: #64748b; font-size: 10px;">${t.date} • <span style="background: #f1f5f9; padding: 1px 4px; border-radius: 3px;">${t.category}</span> • ${statusTxt}</span>
+            <span style="color: #64748b; font-size: 10px;">${t.date} • <span style="background: #f1f5f9; padding: 1px 4px; border-radius: 3px;">${t.category}</span></span>
           </div>
           <div style="font-weight: 800; font-size: 12px; color: ${color}; text-align: right; white-space: nowrap;">
             ${valFormatted}
@@ -1556,7 +1713,7 @@
       element.style.left = 'auto';
 
       const opt = {
-        margin:       15, // Margens laterais e verticais seguras em mm
+        margin:       15,
         filename:     `Finanzzas_Extrato_${selectedMonth}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  { scale: 2, useCORS: true },
@@ -1629,14 +1786,29 @@
 
       const loc = await getAutoLocation();
 
+      let finalAmount = Math.abs(amount);
+      let status = 'paid';
+
+      if (type === 'expense') {
+        finalAmount = -Math.abs(amount);
+        status = 'paid';
+      } else if (type === 'income') {
+        finalAmount = Math.abs(amount);
+        status = 'paid';
+      } else if (type === 'scheduled') {
+        finalAmount = Math.abs(amount);
+        status = 'pending'; // Agendado
+      }
+
       transactions.unshift({
         id: Date.now(),
         desc,
-        amount: type === 'expense' ? -Math.abs(amount) : Math.abs(amount),
+        amount: finalAmount,
         category,
         date: new Date().toLocaleDateString('pt-BR'),
         month: selectedMonth,
-        status: 'paid',
+        status: status,
+        isScheduled: type === 'scheduled',
         location: loc,
         danfeUrl: danfeUrl || null
       });
@@ -1648,18 +1820,38 @@
       updateUI();
     }
 
+    // Função para Dar Baixa no Agendamento Pago
+    function markScheduledAsPaid(id) {
+      const t = transactions.find(item => item.id === id);
+      if (t) {
+        t.status = 'paid';
+        t.isScheduled = false;
+        saveData();
+        toggleDetailModal();
+        updateUI();
+        alert(`Sucesso! O lançamento "${t.desc}" foi confirmado como Receita Paga!`);
+      }
+    }
+
     function openDetailModal(id) {
       const t = transactions.find(item => item.id === id);
       if (!t) return;
 
       const isPaid = t.status === 'paid';
       const badgeClass = isPaid ? 'badge-paid' : 'badge-pending';
-      const badgeText = isPaid ? 'Pago ✅' : 'Pendente ⏳';
+      const badgeText = isPaid ? 'Pago ✅' : 'A Receber / Agendado ⏳';
 
       const danfeButton = t.danfeUrl ? `
         <a href="${t.danfeUrl}" target="_blank" class="btn btn-info btn-large-action" style="text-decoration:none;">
           📄 Ver Nota Fiscal DANFE
         </a>
+      ` : '';
+
+      // Botão Exclusivo para 'Agendamento Pago'
+      const scheduledPaidBtn = (t.status === 'pending' || t.isScheduled) ? `
+        <button class="btn btn-purple btn-large-action" onclick="markScheduledAsPaid(${t.id})">
+          ⚡ Agendamento Pago (Confirmar Receita)
+        </button>
       ` : '';
 
       const body = document.getElementById('detail-modal-body');
@@ -1675,6 +1867,8 @@
           <span class="badge ${badgeClass}" onclick="toggleStatus(${t.id}); openDetailModal(${t.id});">${badgeText}</span>
         </div>
 
+        ${scheduledPaidBtn}
+
         <form id="edit-form" onsubmit="saveTransactionEdits(event, ${t.id})" style="display: flex; flex-direction: column; gap: 12px;">
           <div>
             <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted);">Descrição</label>
@@ -1689,7 +1883,8 @@
               <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted);">Tipo</label>
               <select id="edit-type" style="width:100%; margin-top:2px;">
                 <option value="expense" ${t.amount < 0 ? 'selected' : ''}>Despesa 🔴</option>
-                <option value="income" ${t.amount >= 0 ? 'selected' : ''}>Receita 🟢</option>
+                <option value="income" ${(t.amount >= 0 && t.status === 'paid') ? 'selected' : ''}>Receita 🟢</option>
+                <option value="scheduled" ${(t.status === 'pending') ? 'selected' : ''}>Agendado 🟡</option>
               </select>
             </div>
           </div>
@@ -1721,17 +1916,26 @@
       t.desc = document.getElementById('edit-desc').value;
       const amount = parseFloat(document.getElementById('edit-amount').value);
       const type = document.getElementById('edit-type').value;
-      t.amount = type === 'expense' ? -Math.abs(amount) : Math.abs(amount);
+
+      if (type === 'expense') {
+        t.amount = -Math.abs(amount);
+        t.status = 'paid';
+        t.isScheduled = false;
+      } else if (type === 'income') {
+        t.amount = Math.abs(amount);
+        t.status = 'paid';
+        t.isScheduled = false;
+      } else if (type === 'scheduled') {
+        t.amount = Math.abs(amount);
+        t.status = 'pending';
+        t.isScheduled = true;
+      }
+
       t.category = document.getElementById('edit-category').value;
 
       saveData();
       toggleDetailModal();
       updateUI();
-    }
-
-    function loginWithGoogle() {
-      window.signInWithPopup(window.firebaseAuth, window.googleProvider)
-        .catch(err => alert("Erro ao fazer login: " + err.message));
     }
 
     function logoutUser() {
@@ -2008,7 +2212,7 @@
         const lat = t.location ? t.location.lat : '';
         const lng = t.location ? t.location.lng : '';
         const danfe = t.danfeUrl || '';
-        const statusTxt = t.status === 'paid' ? 'Pago' : 'Pendente';
+        const statusTxt = t.status === 'paid' ? 'Pago' : 'Pendente/Agendado';
         csv += `"${t.date}";"${t.desc}";"${t.category}";"${val}";"${statusTxt}";"${lat}";"${lng}";"${danfe}"\n`;
       });
 
@@ -2075,7 +2279,7 @@
 
       for (const m of uniqueMonths) {
         if (m >= targetMonth) break;
-        const monthTs = transactions.filter(t => t.month === m);
+        const monthTs = transactions.filter(t => t.month === m && t.status === 'paid');
         let inc = 0, exp = 0;
         monthTs.forEach(t => {
           if (t.amount > 0) inc += t.amount;
@@ -2085,6 +2289,111 @@
       }
 
       return accum;
+    }
+
+    /* Lógica do Calendário Interativo */
+    function renderCalendar(selectedMonth, monthTransactions) {
+      const grid = document.getElementById('calendar-grid-days');
+      grid.innerHTML = '';
+
+      const [year, month] = selectedMonth.split('-').map(Number);
+      const firstDay = new Date(year, month - 1, 1).getDay();
+      const totalDays = new Date(year, month, 0).getDate();
+
+      const today = new Date();
+      const currentYearMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+      const todayDateNum = today.getDate();
+
+      // Espaços vazios no início do mês
+      for (let i = 0; i < firstDay; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'calendar-day empty';
+        grid.appendChild(emptyCell);
+      }
+
+      // Preenchimento dos dias
+      for (let day = 1; day <= totalDays; day++) {
+        const dayFormatted = String(day).padStart(2, '0');
+        const monthFormatted = String(month).padStart(2, '0');
+        const dateStr = `${dayFormatted}/${monthFormatted}/${year}`;
+
+        const dayTs = monthTransactions.filter(t => t.date === dateStr);
+
+        let hasIncome = false;
+        let hasExpense = false;
+
+        dayTs.forEach(t => {
+          if (t.amount > 0) hasIncome = true;
+          if (t.amount < 0) hasExpense = true;
+        });
+
+        const dayCell = document.createElement('div');
+        dayCell.className = 'calendar-day';
+        dayCell.textContent = day;
+
+        // Estilização por Tipo de Partida no Dia
+        if (hasIncome && hasExpense) {
+          dayCell.classList.add('has-both');
+        } else if (hasIncome) {
+          dayCell.classList.add('has-income-only');
+        } else if (hasExpense) {
+          dayCell.classList.add('has-expense-only');
+        }
+
+        if (selectedMonth === currentYearMonth && day === todayDateNum) {
+          dayCell.classList.add('is-today');
+        }
+
+        // Clique para Abrir Pop-up do Dia
+        dayCell.onclick = () => openDayModal(dateStr, dayTs);
+
+        grid.appendChild(dayCell);
+      }
+    }
+
+    function openDayModal(dateStr, dayTs) {
+      document.getElementById('day-modal-title').textContent = `📅 Partidas de ${dateStr}`;
+      
+      let dayIncome = 0;
+      let dayExpense = 0;
+
+      const container = document.getElementById('day-transactions-list');
+      container.innerHTML = '';
+
+      if (dayTs.length === 0) {
+        container.innerHTML = '<p style="font-size: 0.85rem; color: var(--text-muted); text-align: center; padding: 12px;">Nenhuma partida registrada neste dia.</p>';
+      } else {
+        dayTs.forEach(t => {
+          if (t.amount > 0 && t.status === 'paid') dayIncome += t.amount;
+          else if (t.amount < 0) dayExpense += Math.abs(t.amount);
+
+          const isPaid = t.status === 'paid';
+          const badgeClass = isPaid ? 'badge-paid' : 'badge-pending';
+          const badgeText = isPaid ? 'Pago ✅' : 'A Receber ⏳';
+          const recurringTag = t.ruleId ? '<span class="badge-recurring">🔄 Fixo/Parc</span>' : '';
+
+          const tile = document.createElement('div');
+          tile.className = 'tile-card';
+          tile.onclick = () => { toggleDayModal(); openDetailModal(t.id); };
+
+          tile.innerHTML = `
+            <div class="tile-left">
+              <span class="tile-title">${t.desc} ${recurringTag}</span>
+              <span class="tile-sub">${t.category}</span>
+            </div>
+            <div class="tile-right">
+              <span class="tile-amount ${t.amount < 0 ? 'text-danger' : 'text-success'}">${formatCurrency(t.amount)}</span>
+              <span class="badge ${badgeClass}">${badgeText}</span>
+            </div>
+          `;
+          container.appendChild(tile);
+        });
+      }
+
+      document.getElementById('day-summary-income').textContent = formatCurrency(dayIncome);
+      document.getElementById('day-summary-expense').textContent = formatCurrency(dayExpense);
+
+      toggleDayModal();
     }
 
     function updateUI() {
@@ -2101,13 +2410,21 @@
 
       const monthTransactions = transactions.filter(t => t.month === selectedMonth);
 
+      // Renderiza o Calendário Interativo
+      renderCalendar(selectedMonth, monthTransactions);
+
       let filtered = monthTransactions.filter(t => {
         const matchesSearch = t.desc.toLowerCase().includes(searchTerm) ||
                               t.category.toLowerCase().includes(searchTerm) ||
                               t.date.toLowerCase().includes(searchTerm);
         
         const matchesCat = filterCat === 'ALL' || t.category === filterCat;
-        const matchesType = filterType === 'ALL' || (filterType === 'expense' ? t.amount < 0 : t.amount >= 0);
+        
+        let matchesType = true;
+        if (filterType === 'expense') matchesType = t.amount < 0;
+        else if (filterType === 'income') matchesType = (t.amount >= 0 && t.status === 'paid');
+        else if (filterType === 'scheduled') matchesType = (t.status === 'pending');
+
         const matchesStatus = filterStatus === 'ALL' || t.status === filterStatus;
 
         return matchesSearch && matchesCat && matchesType && matchesStatus;
@@ -2128,13 +2445,18 @@
       tilesContainer.innerHTML = '';
       tableBody.innerHTML = '';
 
-      let globalIncome = 0;
+      let globalIncomePaid = 0;
+      let globalIncomePending = 0; // Receita Pendente (A Receber)
       let globalExpense = 0;
       const globalCategoryTotals = {};
 
       monthTransactions.forEach(t => {
         if (t.amount > 0) {
-          globalIncome += t.amount;
+          if (t.status === 'paid') {
+            globalIncomePaid += t.amount;
+          } else {
+            globalIncomePending += t.amount;
+          }
         } else {
           const absVal = Math.abs(t.amount);
           globalExpense += absVal;
@@ -2143,7 +2465,7 @@
       });
 
       const prevBalance = calculateAccumulatedBalanceUntil(selectedMonth);
-      const totalBalanceWithPrev = prevBalance + globalIncome - globalExpense;
+      const totalBalanceWithPrev = prevBalance + globalIncomePaid - globalExpense;
 
       const badgeElem = document.getElementById('previous-balance-badge');
       if (prevBalance !== 0) {
@@ -2151,6 +2473,15 @@
         badgeElem.querySelector('span').textContent = `Inclui ${formatCurrency(prevBalance)} acumulados de meses anteriores`;
       } else {
         badgeElem.classList.add('hidden');
+      }
+
+      // Exibição do Valor Pendente em Lilás
+      const pendingBadge = document.getElementById('pending-income-badge');
+      if (globalIncomePending > 0) {
+        pendingBadge.classList.remove('hidden');
+        pendingBadge.textContent = `(+ ${formatCurrency(globalIncomePending)} a receber)`;
+      } else {
+        pendingBadge.classList.add('hidden');
       }
 
       if (mapInstance) {
@@ -2161,7 +2492,7 @@
       filtered.forEach(t => {
         const isPaid = t.status === 'paid';
         const badgeClass = isPaid ? 'badge-paid' : 'badge-pending';
-        const badgeText = isPaid ? 'Pago ✅' : 'Pendente ⏳';
+        const badgeText = isPaid ? 'Pago ✅' : 'A Receber ⏳';
         const recurringTag = t.ruleId ? '<span class="badge-recurring">🔄 Fixo/Parc</span>' : '';
         const danfeTag = t.danfeUrl ? '📄' : '';
 
@@ -2179,7 +2510,7 @@
             <span class="tile-sub">${t.date} • ${t.category} ${t.location ? '📍' : ''}</span>
           </div>
           <div class="tile-right">
-            <span class="tile-amount ${t.amount < 0 ? 'text-danger' : 'text-success'}">${formatCurrency(t.amount)}</span>
+            <span class="tile-amount ${t.amount < 0 ? 'text-danger' : (isPaid ? 'text-success' : 'text-purple')}">${formatCurrency(t.amount)}</span>
             <span class="badge ${badgeClass}" onclick="event.stopPropagation(); toggleStatus(${t.id});">${badgeText}</span>
           </div>
         `;
@@ -2190,7 +2521,7 @@
           <td>${t.date}</td>
           <td>${t.desc} ${recurringTag} ${danfeTag}</td>
           <td>${t.category}</td>
-          <td class="${t.amount < 0 ? 'text-danger' : 'text-success'}">${formatCurrency(t.amount)}</td>
+          <td class="${t.amount < 0 ? 'text-danger' : (isPaid ? 'text-success' : 'text-purple')}">${formatCurrency(t.amount)}</td>
           <td><span class="badge ${badgeClass}" onclick="toggleStatus(${t.id})">${badgeText}</span></td>
           <td>${t.location ? '📍' : '-'}</td>
           <td><button onclick="deleteTransaction(${t.id})" class="close-circle-btn" style="width:22px; height:22px; font-size:0.7rem;">✕</button></td>
@@ -2205,11 +2536,11 @@
         }
       });
 
-      document.getElementById('total-income').textContent = formatCurrency(globalIncome);
+      document.getElementById('total-income').textContent = formatCurrency(globalIncomePaid);
       document.getElementById('total-expense').textContent = formatCurrency(globalExpense);
       document.getElementById('total-balance').textContent = formatCurrency(totalBalanceWithPrev);
 
-      calculateAnalytics(globalIncome, globalExpense, globalCategoryTotals);
+      calculateAnalytics(globalIncomePaid, globalExpense, globalCategoryTotals);
 
       const filteredCategoryTotals = {};
       filtered.forEach(t => {
@@ -2313,7 +2644,7 @@
       months.forEach(m => {
         let inc = 0;
         let exp = 0;
-        transactions.filter(t => t.month === m).forEach(t => {
+        transactions.filter(t => t.month === m && t.status === 'paid').forEach(t => {
           if (t.amount > 0) inc += t.amount;
           else exp += Math.abs(t.amount);
         });
