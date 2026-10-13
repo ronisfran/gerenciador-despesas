@@ -30,14 +30,7 @@
   <!-- Firebase SDKs (v10.8.0 Modulares) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { 
-      getAuth, 
-      signInWithRedirect, 
-      getRedirectResult, 
-      GoogleAuthProvider, 
-      signOut, 
-      onAuthStateChanged 
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -57,17 +50,10 @@
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
 
-    // Trata o retorno do redirecionamento do Google ao retornar para a aplicação
-    getRedirectResult(auth).catch((error) => {
-      if (error && error.code) {
-        alert("Erro ao processar login: " + error.message);
-      }
-    });
-
     window.firebaseAuth = auth;
     window.firebaseDb = db;
     window.googleProvider = provider;
-    window.signInWithRedirect = signInWithRedirect;
+    window.signInWithPopup = signInWithPopup;
     window.signOut = signOut;
     window.onAuthStateChanged = onAuthStateChanged;
     window.doc = doc;
@@ -602,7 +588,7 @@
     #detail-modal { z-index: 1200; }
     #emergency-modal { z-index: 1250; }
     #qr-modal { z-index: 1300; }
-    #paywall-modal { z-index: 1400; }
+    #paywall-modal { z-index: 1400; } /* Garante que fique acima de qualquer outro pop-up */
 
     .modal {
       background: var(--modal-bg);
@@ -848,23 +834,25 @@
       </div>
     </div>
 
-    <!-- Template Oculto Ajustado com Largura Exata para A4 -->
+    <!-- Template Oculto Ajustado com Largura Exata para A4 (Evita cortes nas laterais) -->
     <div id="pdf-content" style="position: absolute; left: -9999px; top: 0; width: 680px; padding: 25px; background: #ffffff; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; box-sizing: border-box;">
       
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00c4b4; padding-bottom: 12px; margin-bottom: 15px;">
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <img src="icon-192.png" style="width: 36px; height: 36px; border-radius: 8px;" alt="Logo Finanzzas">
-          <div>
-            <h1 style="font-size: 20px; font-weight: 900; color: #0f172a; margin: 0; letter-spacing: -0.5px;">Finanzzas</h1>
-            <p style="font-size: 10px; color: #64748b; margin: 0;">Extrato Financeiro Oficial</p>
-          </div>
-        </div>
-        <div style="text-align: right;">
-          <p style="font-size: 12px; font-weight: 700; color: #0f172a; margin: 0;">Mês: <span id="pdf-meta-month"></span></p>
-          <p style="font-size: 10px; color: #64748b; margin: 2px 0 0 0;">Emissão: <span id="pdf-issue-date"></span></p>
-        </div>
-      </div>
+     <!-- Cabeçalho do Extrato com a Logo Oficial (icon-192.png) -->
+<div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00c4b4; padding-bottom: 12px; margin-bottom: 15px;">
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <img src="icon-192.png" style="width: 36px; height: 36px; border-radius: 8px;" alt="Logo Finanzzas">
+    <div>
+      <h1 style="font-size: 20px; font-weight: 900; color: #0f172a; margin: 0; letter-spacing: -0.5px;">Finanzzas</h1>
+      <p style="font-size: 10px; color: #64748b; margin: 0;">Extrato Financeiro Oficial</p>
+    </div>
+  </div>
+  <div style="text-align: right;">
+    <p style="font-size: 12px; font-weight: 700; color: #0f172a; margin: 0;">Mês: <span id="pdf-meta-month"></span></p>
+    <p style="font-size: 10px; color: #64748b; margin: 2px 0 0 0;">Emissão: <span id="pdf-issue-date"></span></p>
+  </div>
+</div>
 
+      <!-- Dados do Usuário / Cliente -->
       <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-size: 11px; display: flex; justify-content: space-between;">
         <div>
           <p style="margin: 0; color: #64748b; font-size: 9px; text-transform: uppercase; font-weight: 700;">Titular da Conta</p>
@@ -876,10 +864,14 @@
         </div>
       </div>
 
+      <!-- Resumo de Lançamentos em Lista Vertical com Margens Seguras -->
       <h3 style="font-size: 11px; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">Histórico de Movimentações</h3>
       
-      <div id="pdf-transactions-list" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px;"></div>
+      <div id="pdf-transactions-list" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px;">
+        <!-- Inserido dinamicamente via JavaScript -->
+      </div>
 
+      <!-- Rodapé com Totais do Banco / Mês -->
       <div style="background: #f1f5f9; border-radius: 10px; padding: 14px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #cbd5e1;">
         <div style="display: flex; flex-direction: column; gap: 2px;">
           <span style="font-size: 10px; color: #64748b; font-weight: 700; text-transform: uppercase;">Total Entradas</span>
@@ -969,6 +961,7 @@
               <select id="quick-category" onchange="handleCategorySelectChange(this)" style="width: 100%;"></select>
             </div>
 
+            <!-- Botão de emergência destacado -->
             <button type="button" class="emergency-btn" onclick="checkProFeature(() => { toggleAddModal(); toggleEmergencyModal(); }, 'Botão de Emergência')">
               🚨 Esqueceu Gastos? Ajuste Rápido ⭐
             </button>
@@ -1286,7 +1279,7 @@
       }, 200);
     });
 
-    /* Trava do Modelo Freemium / Paywall */
+    /* Trava do Modelo Freemium / Paywall com fechamento automático de outros modais */
     function checkProFeature(actionCallback, featureName) {
       if (userPlan === 'pro') {
         actionCallback();
@@ -1296,6 +1289,7 @@
     }
 
     function openPaywallModal(reason) {
+      // Fecha outros modais abertos para garantir foco total e visualização limpa do paywall
       document.getElementById('add-modal').classList.remove('open');
       document.getElementById('emergency-modal').classList.remove('open');
       document.getElementById('detail-modal').classList.remove('open');
@@ -1562,7 +1556,7 @@
       element.style.left = 'auto';
 
       const opt = {
-        margin:       15,
+        margin:       15, // Margens laterais e verticais seguras em mm
         filename:     `Finanzzas_Extrato_${selectedMonth}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  { scale: 2, useCORS: true },
@@ -1735,9 +1729,9 @@
       updateUI();
     }
 
-    /* Função de login alterada de signInWithPopup para signInWithRedirect */
     function loginWithGoogle() {
-      window.signInWithRedirect(window.firebaseAuth, window.googleProvider);
+      window.signInWithPopup(window.firebaseAuth, window.googleProvider)
+        .catch(err => alert("Erro ao fazer login: " + err.message));
     }
 
     function logoutUser() {
