@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -1998,8 +1998,80 @@
       });
     }
 
+    function syncFromFirebase(uid) {
+      if (firestoreUnsubscribe) firestoreUnsubscribe();
+      const userDocRef = window.doc(window.firebaseDb, "users", uid);
+      firestoreUnsubscribe = window.onSnapshot(userDocRef, (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          transactions = data.transactions || [];
+          recurringRules = data.recurringRules || [];
+          userPlan = data.plan || 'free';
+          if (data.customCategories && Array.isArray(data.customCategories)) {
+            customCategories = data.customCategories;
+          }
+
+          // Trava de resgate de emergência: se o banco vier vazio mas houver backup local recente no dispositivo
+          if (transactions.length === 0) {
+            const localBackup = localStorage.getItem(`finanzzas_backup_${uid}`);
+            if (localBackup) {
+              try {
+                const parsed = JSON.parse(localBackup);
+                if (parsed.transactions && parsed.transactions.length > 0) {
+                  if (confirm("Detectamos que a nuvem está vazia, mas encontramos um backup recente neste dispositivo. Deseja restaurar seus dados locais?")) {
+                    transactions = parsed.transactions || [];
+                    recurringRules = parsed.recurringRules || [];
+                    if (parsed.customCategories) customCategories = parsed.customCategories;
+                    saveData(true); // Sobe de volta para a nuvem
+                  }
+                }
+              } catch (e) {
+                console.error("Erro ao ler backup local:", e);
+              }
+            }
+          }
+
+          renderCategorySelects();
+          updateAuthUI();
+          updateUI();
+        } else {
+          // Se o documento do usuário não existe no Firestore, verifica se há backup local antes de zerar
+          const localBackup = localStorage.getItem(`finanzzas_backup_${uid}`);
+          if (localBackup) {
+            try {
+              const parsed = JSON.parse(localBackup);
+              transactions = parsed.transactions || [];
+              recurringRules = parsed.recurringRules || [];
+              if (parsed.customCategories) customCategories = parsed.customCategories;
+            } catch (e) {}
+          }
+          saveData(true);
+        }
+      });
+    }
+
     function saveData(syncCloud = true) {
       if (!currentUser) return;
+
+      // 1. Espelhamento local de emergência (Salva direto na memória do navegador)
+      try {
+        localStorage.setItem(`finanzzas_backup_${currentUser.uid}`, JSON.stringify({
+          transactions,
+          recurringRules,
+          customCategories,
+          updatedAt: new Date().toISOString()
+        }));
+      } catch (e) {
+        console.warn("Falha ao gravar backup local no dispositivo:", e);
+      }
+
+      // 2. Trava de segurança: impede enviar array vazio acidental para o Firestore se já havia dados
+      if (transactions.length === 0 && syncCloud) {
+        console.warn("Tentativa de salvar lista vazia bloqueada por segurança.");
+        return;
+      }
+
+      // 3. Sincronização segura com o Firebase
       if (syncCloud && window.setDoc) {
         const userDocRef = window.doc(window.firebaseDb, "users", currentUser.uid);
         window.setDoc(userDocRef, {
@@ -2011,7 +2083,7 @@
         }, { merge: true });
       }
     }
-
+    
     function updateAuthUI() {
       const container = document.getElementById('auth-status-container');
       const welcomeTitle = document.getElementById('user-welcome-title');
